@@ -1,3 +1,9 @@
+.DS_Store
+.xlsx
+/Analysis plan/
+/Model/
+
+
 # History files
 .Rhistory
 .Rapp.history
