@@ -94,7 +94,7 @@ File.CreateSubFolder <- function(path, SubFolderName) {
 }
 
 
-Parallel.Regist <- function(ncores = NULL) {
+Parallel.Regist <- function(ncores = NULL, seed = NULL) {
   ## SETUP PARALLEL NODES
   # note: they will be removed after 600 seconds inactivity
   if (is.null(ncores)) {
@@ -102,6 +102,11 @@ Parallel.Regist <- function(ncores = NULL) {
   }
   par_cluster <- makeCluster(ncores, cores = ncores) # , timeout = 600
   registerDoParallel(par_cluster)
+
+  # set seed for each node
+  if (!is.null(seed)) {
+    clusterSetRNGStream(par_cluster, seed)
+  }
 
   # store the process id (pid) of the first slave
   pid_slave1 <- clusterEvalQ(par_cluster, { # 用于在集群的每个节点上执行相同的表达式
@@ -129,9 +134,11 @@ Parallel.Import <- function(Func_Vir) {
   clusterEvalQ(ParallelNodesInfo[[1]], library("tidyverse"))
   clusterEvalQ(ParallelNodesInfo[[1]], library("extraDistr"))
   clusterEvalQ(ParallelNodesInfo[[1]], library("truncnorm"))
+  clusterEvalQ(ParallelNodesInfo[[1]], library("progress"))
   clusterEvalQ(ParallelNodesInfo[[1]], {
     library("deSolve")
     sourceCpp("Code/model_cppV4.cpp")
+    sourceCpp("Code/model_immuV3.cpp")
   }) # 在使用c++的时候，要在传递的时候直接把代码编译进去
 }
 
@@ -169,27 +176,49 @@ Parallel.Reset <- function() {
 
 #' @title function to create state names
 #' @param num_age: number of age group
-Get.StateName <- function(num_age = num_age) {
+Get.StateName <- function(num_age = num_age, model = c("SIR", "SIRV")) {
   # num_age: number of age group
   state_nam <- c()
-  for (i in 1:num_age) {
-    if (i == 1) {
-      state_nam_temp <- c(
-        paste0("M"),
-        paste0("S0_G", i), paste0("I0_G", i), paste0("R0_G", i),
-        paste0("S1_G", i), paste0("I1_G", i), paste0("R1_G", i),
-        paste0("S2_G", i), paste0("I2_G", i), paste0("R2_G", i),
-        paste0("Reported_G", i)
-      )
-    } else {
-      state_nam_temp <- c(
-        paste0("S0_G", i), paste0("I0_G", i), paste0("R0_G", i),
-        paste0("S1_G", i), paste0("I1_G", i), paste0("R1_G", i),
-        paste0("S2_G", i), paste0("I2_G", i), paste0("R2_G", i),
-        paste0("Reported_G", i)
-      )
+  if (model == "SIR") {
+    for (i in 1:num_age) {
+      if (i == 1) {
+        state_nam_temp <- c(
+          paste0("M"),
+          paste0("S0_G", i), paste0("I0_G", i), paste0("R0_G", i),
+          paste0("S1_G", i), paste0("I1_G", i), paste0("R1_G", i),
+          paste0("S2_G", i), paste0("I2_G", i), paste0("R2_G", i),
+          paste0("Reported_G", i)
+        )
+      } else {
+        state_nam_temp <- c(
+          paste0("S0_G", i), paste0("I0_G", i), paste0("R0_G", i),
+          paste0("S1_G", i), paste0("I1_G", i), paste0("R1_G", i),
+          paste0("S2_G", i), paste0("I2_G", i), paste0("R2_G", i),
+          paste0("Reported_G", i)
+        )
+      }
+      state_nam <- c(state_nam, state_nam_temp)
     }
-    state_nam <- c(state_nam, state_nam_temp)
+  } else if (model == "SIRV") {
+    for (i in 1:num_age) {
+      if (i == 1) {
+        state_nam_temp <- c(
+          paste0("M"),
+          paste0("S0_G", i), paste0("V0_G", i), paste0("I0_G", i), paste0("R0_G", i),
+          paste0("S1_G", i), paste0("V1_G", i), paste0("I1_G", i), paste0("R1_G", i),
+          paste0("S2_G", i), paste0("V2_G", i), paste0("I2_G", i), paste0("R2_G", i),
+          paste0("Reported_G", i)
+        )
+      } else {
+        state_nam_temp <- c(
+          paste0("S0_G", i), paste0("V0_G", i), paste0("I0_G", i), paste0("R0_G", i),
+          paste0("S1_G", i), paste0("V1_G", i), paste0("I1_G", i), paste0("R1_G", i),
+          paste0("S2_G", i), paste0("V2_G", i), paste0("I2_G", i), paste0("R2_G", i),
+          paste0("Reported_G", i)
+        )
+      }
+      state_nam <- c(state_nam, state_nam_temp)
+    }
   }
   return(state_nam)
 }
@@ -200,15 +229,29 @@ Get.StateName <- function(num_age = num_age) {
 #' @param M_num: the number of newborn at the beginning
 #' @param population: healthy population by age group
 #' @param inf_num: the number of infected cases in the beginning
-Get.InitState <- function(num_age = 11, M_num = 6000, population = Scot_Pop, inf_num = 20) {
-  state <- vector("numeric", 10 * num_age + 1)
-  names(state) <- Get.StateName(num_age = num_age)
-  state[1] <- M_num
-  for (i in 1:num_age) {
-    state[2 + (i - 1) * 10] <- as.numeric(population[i])
-  }
-  for (i in 1:num_age) { # assign the initial number of infected cases, 20
-    state[3 + (i - 1) * 10] <- inf_num
+Get.InitState <- function(
+    num_age = 11, M_num = 6000, population = Scot_Pop,
+    inf_num = 20, model = "SIR") {
+  if (model == "SIR") {
+    state <- vector("numeric", 10 * num_age + 1)
+    names(state) <- Get.StateName(num_age = num_age, model = "SIR")
+    state[1] <- M_num
+    for (i in 1:num_age) {
+      state[2 + (i - 1) * 10] <- as.numeric(population[i])
+    }
+    for (i in 1:num_age) { # assign the initial number of infected cases, 20
+      state[3 + (i - 1) * 10] <- inf_num
+    }
+  } else if (model == "SIRV") {
+    state <- vector("numeric", 13 * num_age + 1)
+    names(state) <- Get.StateName(num_age = num_age, model = "SIRV")
+    state[1] <- M_num
+    for (i in 1:num_age) {
+      state[2 + (i - 1) * 13] <- as.numeric(population[i])
+    }
+    for (i in 1:num_age) { # assign the initial number of infected cases, 20
+      state[4 + (i - 1) * 13] <- inf_num
+    }
   }
   return(state)
 }
@@ -248,7 +291,6 @@ Parameter.Create <- function(
     phi = 0,
     contact_str = ContacrStr,
     gamma = 1 / 7, # 0.1428571; 7 days or 11 days
-    E_time = 1 / 3, # 3 days
     omega_inf = 1 / 300, # 0.005847953; Duration of immunity from infection
     ReducedSus_1 = 0.76, # Reduced sus, 2 vs 1
     ReducedSus_2 = 0.88, # Reduced sus, n vs 2
@@ -268,21 +310,37 @@ Parameter.Create <- function(
       0.08, # 70-74 years
       0.08 # 75+ years
     ),
-    Age_Sus = c(
-      1, # 0-2 months
-      1, # 3-5 months
-      1, # 6-11 months
-      1, # 1-2 years
-      1, # 2-4 years
-      1, # 5-19 years
-      1, # 20-59 years
-      1, # 60-64 years
-      1, # 65-69 years
-      1, # 70-74 years
-      1 # 75+ years
-    )) {
+    Age_Sus = 0.2,
+    # Vaccine
+    Vac_start = "2017-03-29",
+    Effacy = 0.4,
+    VacProp = 0.4,
+    omega_vac = 1 / 180) {
+  # Modify the first age group
   age_rates_1 <- 1 / ((1 / age_rates[1]) - omega_m)
   age_rates <- c(age_rates_1, age_rates[-1])
+
+  # Calibration of vaccined proportion
+  NeedVacPopulation <- -log(1 - (Effacy * VacProp)) # 用这个替换Efface*VacProp
+
+  # Expand the vaccine proportion
+  # VacProp <- c(
+  #   VacProp, # 0-2 months
+  #   VacProp, # 3-5 months
+  #   VacProp, # 6-11 months
+  #   VacProp, # 1-2 years
+  #   VacProp, # 2-4 years
+  #   0, # 5-19 years
+  #   0, # 20-59 years
+  #   0, # 60-64 years
+  #   0, # 65-69 years
+  #   0, # 70-74 years
+  #   0 # 75+ years
+  # )
+
+  # Calculate Vaccine date
+  Vac_start <- as.numeric(seq(as.Date(Vac_start), max(as.Date(year_end)), by = "year"))
+
   Parmeters <-
     list(
       # Base state
@@ -316,7 +374,39 @@ Parameter.Create <- function(
 
       # Hospitalization rate
       Hosp_rate = Hosp_rate,
-      Age_Sus = Age_Sus
+      Age_Sus = c(
+        1, # 0-2 months
+        1, # 3-5 months
+        1, # 6-11 months
+        1, # 1-2 years
+        1, # 2-4 years
+        1, # 5-19 years
+        Age_Sus, # 20-59 years
+        Age_Sus, # 60-64 years
+        Age_Sus, # 65-69 years
+        Age_Sus, # 70-74 years
+        Age_Sus # 75+ years
+      ),
+
+      # Vaccine
+      Vac_start = Vac_start,
+      # Effacy = Effacy,
+      NeedVacPopulation = NeedVacPopulation,
+      # VacProp = VacProp,
+      VacAgeGroup = c(
+        1, # 0-2 months
+        1, # 3-5 months
+        1, # 6-11 months
+        1, # 1-2 years
+        1, # 2-4 years
+        0, # 5-19 years
+        0, # 20-59 years
+        0, # 60-64 years
+        0, # 65-69 years
+        0, # 70-74 years
+        0 # 75+ years
+      ),
+      omega_vac = omega_vac
     )
 
   return(Parmeters)
@@ -326,7 +416,7 @@ Parameter.Create <- function(
 #' @title Calculate the number of infected cases
 #' @param dat: data
 #' @param Hosp_rate: hospitalization rate
-Model.GetI <- function(dat, Hosp_rate = parameters[["Hosp_rate"]]) {
+Model.GetI <- function(dat, Hosp_rate = parameters[["Hosp_rate"]], lag = FALSE) {
   NewDat <- dat %>% as.data.table()
   NewDat <- NewDat[, time := as.Date(time)]
   ReportName <- grep("Reported", names(NewDat), value = TRUE)
@@ -340,19 +430,23 @@ Model.GetI <- function(dat, Hosp_rate = parameters[["Hosp_rate"]]) {
   RealI <- cbind(NewDat[, 1], RealI)
   ExcludeCol <- setdiff(names(RealI), c("time", "week"))
   # 使用真实时间模拟
-  RealI <- RealI[, week := substr(ISOweek::date2ISOweek(time), 1, 8)][time >= as.Date("2017-06-26") & time <= as.Date("2020-03-29"), ][, (ExcludeCol) := lapply(.SD, sum), by = .(week), .SDcols = ExcludeCol]
-  # RealI <- RealI[, week := substr(ISOweek::date2ISOweek(time), 1, 8)
-  # ][, ":="(Reported_G1 = shift(Reported_G1, 1, type = "lag", fill = 0),
-  #   Reported_G2 = shift(Reported_G2, 1, type = "lag", fill = 0),
-  #   Reported_G3 = shift(Reported_G3, 1, type = "lag", fill = 0),
-  #   Reported_G4 = shift(Reported_G4, 2, type = "lag", fill = 0),
-  #   Reported_G5 = shift(Reported_G5, 2, type = "lag", fill = 0),
-  #   Reported_G6 = shift(Reported_G6, 2, type = "lag", fill = 0),
-  #   Reported_G7 = shift(Reported_G7, 7, type = "lag", fill = 0),
-  #   Reported_G8 = shift(Reported_G8, 7, type = "lag", fill = 0),
-  #   Reported_G9 = shift(Reported_G9, 7, type = "lag", fill = 0),
-  #   Reported_G10 = shift(Reported_G10, 7, type = "lag", fill = 0),
-  #   Reported_G11 = shift(Reported_G11, 7, type = "lag", fill = 0))][time >= as.Date("2017-06-26") & time <= as.Date("2020-03-29"), ][, (ExcludeCol) := lapply(.SD, sum), by = .(week), .SDcols = ExcludeCol]
+  if (lag) {
+    RealI <- RealI[, week := substr(ISOweek::date2ISOweek(time), 1, 8)][, ":="(Reported_G1 = shift(Reported_G1, 1, type = "lag", fill = 0),
+      Reported_G2 = shift(Reported_G2, 1, type = "lag", fill = 0),
+      Reported_G3 = shift(Reported_G3, 1, type = "lag", fill = 0),
+      Reported_G4 = shift(Reported_G4, 2, type = "lag", fill = 0),
+      Reported_G5 = shift(Reported_G5, 2, type = "lag", fill = 0),
+      Reported_G6 = shift(Reported_G6, 2, type = "lag", fill = 0),
+      Reported_G7 = shift(Reported_G7, 7, type = "lag", fill = 0),
+      Reported_G8 = shift(Reported_G8, 7, type = "lag", fill = 0),
+      Reported_G9 = shift(Reported_G9, 7, type = "lag", fill = 0),
+      Reported_G10 = shift(Reported_G10, 7, type = "lag", fill = 0),
+      Reported_G11 = shift(Reported_G11, 7, type = "lag", fill = 0))][time >= as.Date("2017-06-26") & time <= as.Date("2020-03-29"), ][, (ExcludeCol) := lapply(.SD, sum), by = .(week), .SDcols = ExcludeCol]
+  } else {
+    RealI <- RealI[, week := substr(ISOweek::date2ISOweek(time), 1, 8)][time >= as.Date("2017-06-26") & time <= as.Date("2020-03-29"), ][, (ExcludeCol) := lapply(.SD, sum), by = .(week), .SDcols = ExcludeCol]
+  }
+
+
   # 截止时间修改为2018-03-29，默认情况（使用三年的数据）的截止时间是2020-03-29
   # "2017-06-26" "2020-03-29"
   # 使用固定的时间长度模拟
@@ -361,7 +455,6 @@ Model.GetI <- function(dat, Hosp_rate = parameters[["Hosp_rate"]]) {
   #                  ]
 
   # Calculate cases for each group
-  # 下面这一句是使用泊松分布的时候使用的，用来给每个年龄组乘以相应的hospitalization rate，使用二项分布和非二项分布的时候不需要
   RealI <- RealI[, (2:(ncol(RealI) - 1)) := lapply(2:(ncol(RealI) - 1), function(i) RealI[[i]] * Hosp_rate[i - 1])]
 
   NameOrder <- c("time", "week", ExcludeCol)
@@ -374,24 +467,20 @@ Model.GetI <- function(dat, Hosp_rate = parameters[["Hosp_rate"]]) {
 
 #' @title Run simulation
 #' @param Parm: parameters for simulatio
-Model.RunSim <- function(Parm) {
+Model.RunSim <- function(Parm, lag = FALSE) {
   # times <- seq(from = 1, to = 365 * Parm[["years"]])
   times <- as.numeric(seq(from = as.Date(Parm[["year_start"]]), to = as.Date(Parm[["year_end"]]), by = 1))
   state <- Get.InitState(
     num_age = Parm[["num_age"]],
     M_num = Parm[["M_num"]],
     population = Parm[["population"]],
-    inf_num = Parm[["inf_num"]]
+    inf_num = Parm[["inf_num"]],
+    model = "SIR"
   )
 
-  SimResult <- ode(y = state, times = times, func = ModelSimCpp, parms = Parm, method = "rk4")
-  SimResult <- Model.GetI(SimResult, Parm[["Hosp_rate"]])
+  SimResult <- ode(y = state, times = times, func = ModelSimCpp, parms = Parm, method = "lsoda") # "rk4"
+  SimResult <- Model.GetI(SimResult, Parm[["Hosp_rate"]], lag = lag)
 
-  # return(list(
-  #   Data = SimResult,
-  #   fig1 = fig1,
-  #   fig2 = fig2
-  # ))
   return(SimResult)
 }
 
@@ -497,39 +586,26 @@ Plot.Model <- function(dat, RealDat = RealDat_plot) {
 #' @title Calculate the likelihood
 #' @param Parm: parameters for simulation
 #' @param TargetDat: target data
-Model.RunSim.LLH <- function(Parm, TargetDat = RefDat) {
-  Dat <- Model.RunSim(Parm)
+Model.RunSim.LLH <- function(Parm, TargetDat = RefDat, lag = FALSE) {
+  Dat <- Model.RunSim(Parm, lag = lag)
   SimDat <- Dat[[2]]
 
   SimDat <- melt(SimDat, id = c("time", "week"))
   CombineTable <- merge(SimDat, TargetDat, by.x = c("week", "variable"), by.y = c("week", "age_group"), all.y = T)
   CombineTable <- na.omit(CombineTable)
 
-  # Calaulate the likelihood based on Poisson distribution
-  # CombineTable[variable == "Reported_G1", likelihood := dpois(x = true_value, lambda = round(value), log = T)]
-  # CombineTable[variable == "Reported_G2", likelihood := dpois(x = true_value, lambda = round(value), log = T)]
-  # CombineTable[variable == "Reported_G3", likelihood := dpois(x = true_value, lambda = round(value), log = T)]
-  # CombineTable[variable == "Reported_G4", likelihood := dpois(x = true_value, lambda = round(value), log = T)]
-  # CombineTable[variable == "Reported_G5", likelihood := dpois(x = true_value, lambda = round(value), log = T)]
-  # CombineTable[variable == "Reported_G6", likelihood := dpois(x = true_value, lambda = round(value), log = T)]
-  # CombineTable[variable == "Reported_G7", likelihood := dpois(x = true_value, lambda = round(value), log = T)]
-  # CombineTable[variable == "Reported_G8", likelihood := dpois(x = true_value, lambda = round(value), log = T)]
-  # CombineTable[variable == "Reported_G9", likelihood := dpois(x = true_value, lambda = round(value), log = T)]
-  # CombineTable[variable == "Reported_G10", likelihood := dpois(x = true_value, lambda = round(value), log = T)]
-  # CombineTable[variable == "Reported_G11", likelihood := dpois(x = true_value, lambda = round(value), log = T)]
-
   # Calculate the likelihood based on negative binomial distribution
-  CombineTable[variable == "Reported_G1", likelihood := dnbinom(x = true_value, size = 1.45, mu = round(value), log = T)]
-  CombineTable[variable == "Reported_G2", likelihood := dnbinom(x = true_value, size = 1.45, mu = round(value), log = T)]
-  CombineTable[variable == "Reported_G3", likelihood := dnbinom(x = true_value, size = 1.45, mu = round(value), log = T)]
-  CombineTable[variable == "Reported_G4", likelihood := dnbinom(x = true_value, size = 1.45, mu = round(value), log = T)]
-  CombineTable[variable == "Reported_G5", likelihood := dnbinom(x = true_value, size = 1.45, mu = round(value), log = T)]
-  CombineTable[variable == "Reported_G6", likelihood := dnbinom(x = true_value, size = 1.45, mu = round(value), log = T)]
-  CombineTable[variable == "Reported_G7", likelihood := dnbinom(x = true_value, size = 1.45, mu = round(value), log = T)]
-  CombineTable[variable == "Reported_G8", likelihood := dnbinom(x = true_value, size = 1.45, mu = round(value), log = T)]
-  CombineTable[variable == "Reported_G9", likelihood := dnbinom(x = true_value, size = 1.45, mu = round(value), log = T)]
-  CombineTable[variable == "Reported_G10", likelihood := dnbinom(x = true_value, size = 1.45, mu = round(value), log = T)]
-  CombineTable[variable == "Reported_G11", likelihood := dnbinom(x = true_value, size = 1.45, mu = round(value), log = T)]
+  CombineTable[variable == "Reported_G1", likelihood := dnbinom(x = true_value, size = 1.45, mu = ceiling(value), log = T)]
+  CombineTable[variable == "Reported_G2", likelihood := dnbinom(x = true_value, size = 1.45, mu = ceiling(value), log = T)]
+  CombineTable[variable == "Reported_G3", likelihood := dnbinom(x = true_value, size = 1.45, mu = ceiling(value), log = T)]
+  CombineTable[variable == "Reported_G4", likelihood := dnbinom(x = true_value, size = 1.45, mu = ceiling(value), log = T)]
+  CombineTable[variable == "Reported_G5", likelihood := dnbinom(x = true_value, size = 1.45, mu = ceiling(value), log = T)]
+  CombineTable[variable == "Reported_G6", likelihood := dnbinom(x = true_value, size = 1.45, mu = ceiling(value), log = T)]
+  CombineTable[variable == "Reported_G7", likelihood := dnbinom(x = true_value, size = 1.45, mu = ceiling(value), log = T)]
+  CombineTable[variable == "Reported_G8", likelihood := dnbinom(x = true_value, size = 1.45, mu = ceiling(value), log = T)]
+  CombineTable[variable == "Reported_G9", likelihood := dnbinom(x = true_value, size = 1.45, mu = ceiling(value), log = T)]
+  CombineTable[variable == "Reported_G10", likelihood := dnbinom(x = true_value, size = 1.45, mu = ceiling(value), log = T)]
+  CombineTable[variable == "Reported_G11", likelihood := dnbinom(x = true_value, size = 1.45, mu = ceiling(value), log = T)]
 
   LLH_Summ <- CombineTable[, sum(likelihood, na.rm = T)]
   LLH_Out <- LLH_Summ
@@ -552,108 +628,49 @@ Model.RunSim.LLH <- function(Parm, TargetDat = RefDat) {
 #' @param upper_bounds: upper bounds for parameters
 #' @param theta_names: names of parameters
 MCMC.Proposal <- function(Parm) {
-  # ParmNew_base <- rtruncnorm(1, a = 0, mean = Parm[1], sd = 1) # # beta_base
-  ParmNew_base <- exp(log(Parm[1]) + runif(1, -0.02, 0.02)) # beta_base
-  # ParmNew_seasonal <- rtruncnorm(1, a = 0, mean = Parm[2], sd = 1) # beta_seasonal
-  ParmNew_seasonal <- exp(log(Parm[2]) + runif(1, -0.02, 0.02)) # beta_seasonal
+  ParmNew_base <- rtruncnorm(1, a = 0, b = 1, mean = Parm[1], sd = Parm[1] / 30) # Parm[1] / 10 0.005 # beta_base
 
-  ParmNew2 <- rtruncnorm(1, a = 0.4, b = 0.6, mean = Parm[3], sd = 0.002) # Parm[3] + runif(1, -1.8, 1.8) # phi
+  # ParmNew_seasonal <- rtruncnorm(1, a = 0, mean = Parm[2], sd = Parm[2] / 15) # Parm[2] / 10  0.005 # beta_seasonal
+  ParmNew_seasonal <- rtruncnorm(1, a = 5, b = 9.5, mean = Parm[2], sd = 0.05) # Parm[2] / 10  0.005 # beta_seasonal
 
-  ParmNew3 <- rtruncnorm(1, a = 0.02, b = 0.15, mean = Parm[4], sd = 0.0025) # seasonal_wavelength
-  # ParmNew3 <- exp(log(Parm[4]) + runif(1, -1, 1)) # seasonal_wavelength
+  ParmNew2 <- rtruncnorm(1, a = -30, b = 10, mean = Parm[3], sd = 5) # Parm[3] + runif(1, -1.8, 1.8) # phi
 
-  ParmNew4 <- rtruncnorm(1, a = 0, b = 0.05, mean = Parm[c(5:15)], sd = Parm[c(5:15)] / 5) # Hosp_rate
-  # 0-2 months # 3-5 months # 6-11 months # 1-2 years # 2-4 years # 5-19 years
-  # 20-59 years # 60-64 years # 65-69 years # 70-74 years # 75+ years
+  # ParmNew3 <- rtruncnorm(1, a = 0.02, mean = Parm[4], sd = Parm[4] / 15) # 0.0004 seasonal_wavelength
+  ParmNew3 <- rtruncnorm(1, a = 28, b = 31, mean = Parm[4], sd = 0.0) # 0.0004 seasonal_wavelength
+
+  # ParmNew4 <- rtruncnorm(11, a = 0, b = 0.05, mean = Parm[c(5:15)], sd = Parm[c(5:15)] / 12) # Hosp_rate
+  ParmNew4.1 <- rtruncnorm(6, a = 0, b = 0.5, mean = Parm[c(5:10)], sd = Parm[c(5:10)] / 30) # Hosp_rate 0.0005
+  ParmNew4.2 <- rtruncnorm(1, a = 0, b = 0.1, mean = Parm[c(11)], sd = Parm[c(11)] / 15) # Parm[c(11)] / 10  0.00004# Hosp_rate
+  ParmNew4.3 <- rtruncnorm(1, a = 0, b = 0.1, mean = Parm[c(12)], sd = Parm[c(12)] / 15) # Parm[c(12)] / 10 0.00004# Hosp_rate
+  ParmNew4.4 <- rtruncnorm(1, a = 0, b = 0.1, mean = Parm[c(15)], sd = Parm[c(15)] / 15) # Parm[c(15)] / 10 0.00004# Hosp_rate
+
+  ParmNew4 <- c(
+    ParmNew4.1,
+    ParmNew4.2,
+    ParmNew4.3, ParmNew4.3, ParmNew4.3,
+    ParmNew4.4
+  )
 
   ParmOut <- c(ParmNew_base, ParmNew_seasonal, ParmNew2, ParmNew3, ParmNew4)
   return(ParmOut)
 }
-# MCMC.Proposal <- function(Parm) {
-#   ParmBata1 <- log(Parm[1])
-#   ParmBata2 <- log((1 - Parm[2]) / Parm[2])
-#   ParmHosp <- log((1 - Parm[c(4:14)]) / Parm[c(4:14)]) # 4, 6, 8, 10, 12
-#   # 0-2 months # 3-5 months # 6-11 months # 1-2 years # 2-4 years # 5-19 years
-#   # 20-59 years # 60-64 years # 65-69 years # 70-74 years # 75+ years
-#
-#   ParmNew1 <- ParmBata1 + runif(1, -0.2, 0.2) # beta_base
-#   ParmNew1.1 <- ParmBata2 + runif(1, -0.2, 0.2) # beta_seasonal
-#   # while (exp(ParmNew1) > 1 / (1 + exp(ParmNew1.1))) {
-#   #   ParmNew1 <- ParmBata1 + runif(1, -0.2, 0.2)
-#   #   ParmNew1.1 <- ParmBata2 + runif(1, -0.5, 0.5)
-#   # }
-#
-#   ParmPhi <- asin((Parm[3] - 1.75) / 0.75) / 0.25 # 最后的0.25用来调整步长
-#   ParmPhiUpdate <- ParmPhi + runif(1, -0, 0) # step2
-#   ParmNew2 <- 0.75 * sin(0.25 * ParmPhiUpdate) + 1.75 # phi
-#
-#   ParmNew3 <- ParmHosp + runif(11, -0.2, 0.2) # Hosp_rate
-#
-#   ParmOut <- c(exp(ParmNew1), 1 / (1 + exp(ParmNew1.1)), ParmNew2, 1 / (1 + exp(ParmNew3)))
-#   return(ParmOut)
-# }
-# MCMC.Proposal <- function(Parm) { # , covmat, lower_bounds, upper_bounds
-#   ParmHosp <- log((1 - Parm[c(4:14)]) / Parm[c(4:14)]) # 4, 6, 8, 10, 12
-#   # log((1 - Parm) / Parm) / -0.1
-#   ParmOld <- c(Parm[1], Parm[2], ParmHosp)
-#   # 0-2 months # 3-5 months # 6-11 months # 1-2 years # 2-4 years # 5-19 years
-#   # 20-59 years # 60-64 years # 65-69 years # 70-74 years # 75+ years
-
-#   ParmNew1 <- Parm[1:2] + runif(2, -0.05, 0.05)
-#   ParmNew2 <- Parm[3] + runif(1, -1, 1)
-#   ParmNew3 <- ParmHosp + runif(11, -0.05, 0.05)
-#   ParmOut <- c(ParmNew1, ParmNew2, 1 / (1 + exp(ParmNew3)))
-#   # ParmNew <-  c(rtmvnorm(1,
-#   #   mean = ParmOld,
-#   #   sigma = covmat,
-#   #   lower = lower_bounds,
-#   #   upper = upper_bounds,
-#   #   algorithm = "gibbs",
-#   #   thinning = 2
-#   # ))
-
-#   # names(ParmNew) <- c(
-#   #   "beta_base", "beta_seasonal", "phi", "Hosp_rateM0_5", "Hosp_rateM6_12",
-#   #   "Hosp_rateY3_18", "Hosp_rateY19_65", "Hosp_rateY66_"
-#   # )
-#   # Hosp_rate <- vector("numeric", length = 11)
-#   # Hosp_rate[1:2] <- 1 / (1 + exp(ParmNew["Hosp_rateM0_5"]))
-#   # Hosp_rate[3:4] <- 1 / (1 + exp(ParmNew["Hosp_rateM6_12"]))
-#   # Hosp_rate[5:6] <- 1 / (1 + exp(ParmNew["Hosp_rateY3_18"]))
-#   # Hosp_rate[7:8] <- 1 / (1 + exp(ParmNew["Hosp_rateY19_65"]))
-#   # Hosp_rate[9:11] <- 1 / (1 + exp(ParmNew["Hosp_rateY66_"]))
-
-#   # ParmOut <- c(ParmNew[1:3], Hosp_rate)
-#   # Parm[["beta_base"]] <- ParmNew[["beta_base"]]
-#   # Parm[["beta_seasonal"]] <- ParmNew[["beta_seasonal"]]
-#   # Parm[["phi"]] <- ParmNew[["phi"]]
-#   # Parm[["Hosp_rate"]][c(1, 2)] <- ParmNew["Hosp_rateM0_5"]
-#   # Parm[["Hosp_rate"]][c(3, 4)] <- ParmNew["Hosp_rateM6_12"]
-#   # Parm[["Hosp_rate"]][c(5, 6)] <- ParmNew["Hosp_rateY3_18"]
-#   # Parm[["Hosp_rate"]][c(7, 8)] <- ParmNew["Hosp_rateY19_65"]
-#   # Parm[["Hosp_rate"]][c(9, 10, 11)] <- ParmNew["Hosp_rateY66_"]
-
-#   # for(param_name in names(parameters_new)){
-#   #   parameters[param_name] <- parameters_new[param_name]}
-
-#   return(ParmOut)
-# }
 
 
 #' @title Run MCMC model
 #' @param Prior: prior parameters
-MCMC.MH <- function(Prior, n_iterations, TargetDat = RefDat) {
-  chain <- matrix(NA, nrow = n_iterations, ncol = 15)
-  chain[1, ] <- Prior
+MCMC.MH <- function(Prior, n_iterations, TargetDat = RefDat, lag = FALSE, Sus_reduce = 0.2) {
+  chain <- matrix(NA, nrow = n_iterations, ncol = 15 + 1)
+  chain[1, -16] <- Prior
   accepted <- 0
 
   current_log_likelihood <- Model.RunSim.LLH(
     Parm = Parameter.Create(
       beta_base = chain[1, 1], beta_seasonal = chain[1, 2], phi = chain[1, 3],
       seasonal_wavelength = chain[1, 4],
-      Hosp_rate = c(chain[1, 5:15])
-    ), TargetDat = TargetDat
+      Hosp_rate = c(chain[1, 5:15]), Age_Sus = Sus_reduce
+    ), TargetDat = TargetDat, lag = lag
   )
+  chain[1, 16] <- current_log_likelihood
 
   pb <- progress_bar$new(total = n_iterations, clear = TRUE, format = "  [:bar] :percent :etas")
   pb$tick()
@@ -662,21 +679,25 @@ MCMC.MH <- function(Prior, n_iterations, TargetDat = RefDat) {
     #   Parm = chain[i - 1, ], covmat = covmat, lower_bounds = lower_bounds,
     #   upper_bounds = upper_bounds
     # )
-    proposal <- MCMC.Proposal(Parm = chain[i - 1, ])
+    proposal <- MCMC.Proposal(Parm = chain[i - 1, -16])
     proposal_log_likelihood <- Model.RunSim.LLH(
       Parm = Parameter.Create(
         beta_base = proposal[1], beta_seasonal = proposal[2], phi = proposal[3],
-        seasonal_wavelength = proposal[4], Hosp_rate = c(proposal[5:15])
-      ), TargetDat = TargetDat
+        seasonal_wavelength = proposal[4], Hosp_rate = c(proposal[5:15]), Age_Sus = Sus_reduce
+      ), TargetDat = TargetDat, lag = lag
     )
 
     # Info <- sprintf("n_iteration is: %d Current LLH is: %f Proposal LLH is: %f", i, current_log_likelihood, proposal_log_likelihood)
     # CLI.Print(Info)
+    if (i %% 200 == 0) {
+      CLI.Print("Current iteration is: ", i / n_iterations * 100)
+    }
 
     acceptance_ratio <- min(1, exp(proposal_log_likelihood - current_log_likelihood))
     if (runif(1) < acceptance_ratio) {
-      chain[i, ] <- proposal
+      chain[i, -16] <- proposal
       current_log_likelihood <- proposal_log_likelihood
+      chain[i, 16] <- current_log_likelihood
       accepted <- accepted + 1
     } else {
       chain[i, ] <- chain[i - 1, ]
@@ -685,6 +706,8 @@ MCMC.MH <- function(Prior, n_iterations, TargetDat = RefDat) {
     # print(chain[i, ])
     pb$tick()
   }
+  acceptance_rate <- accepted / n_iterations
+  print(acceptance_rate)
   return(chain)
 }
 
@@ -694,7 +717,7 @@ MCMC.TracePlot <- function(dat) {
   colnames(dat) <- c(
     "beta_base", "beta_seasonal", "phi", "seasonal_wavelength",
     "Hosp_rateM0_2", "Hosp_rateM3_5", "Hosp_rateM6_11", "Hosp_rateY1_2", "Hosp_rateY2_4", "Hosp_rateY5_19",
-    "Hosp_rateY20_59", "Hosp_rateY60_64", "Hosp_rateY65_69", "Hosp_rateY70_74", "Hosp_rateY75_"
+    "Hosp_rateY20_59", "Hosp_rateY60_64", "Hosp_rateY65_69", "Hosp_rateY70_74", "Hosp_rateY75_" # , "Age_Sus"
   )
   dat <- dat %>%
     as.data.frame() %>%
@@ -709,148 +732,493 @@ MCMC.TracePlot <- function(dat) {
 }
 
 
+MCMC.PosteriorSample <- function(dat) {
+  runif(1, min = dat[1], max = dat[2])
+}
 
 
+MCMC.PostProcess <- function(dat, burn_in = 5000, thin = 10) {
+  Chain <- lapply(seq_along(dat), \(i){
+    Chain <- as.mcmc(dat[[i]][, -ncol(dat[[i]])])
+    Chain <- window(Chain, start = burn_in + 1, thin = thin)
+    colnames(Chain) <- c(
+      "beta_base", "beta_seasonal", "phi", "seasonal_wavelength",
+      "Hosp_rateM0_2", "Hosp_rateM3_5", "Hosp_rateM6_11", "Hosp_rateY1_2", "Hosp_rateY2_4", "Hosp_rateY5_19",
+      "Hosp_rateY20_59", "Hosp_rateY60_64", "Hosp_rateY65_69", "Hosp_rateY70_74", "Hosp_rateY75_"
+    )
+    return(Chain)
+  })
 
+  Chain <- mcmc.list(Chain)
 
+  par(mfrow = c(4, 4))
+  Traceplot <- traceplot(Chain)
 
+  par(mfrow = c(4, 4))
+  Densplot <- densplot(Chain)
 
+  # Geltest <- try(gelman.diag(Chain))
+  Heitest <- heidel.diag(Chain)
 
+  BindChain <- do.call(rbind, Chain)
+  BindChain <- as.mcmc(BindChain)
 
+  Median <- apply(BindChain, 2, median)
+  CI <- HPDinterval(BindChain, prob = 0.95)
 
-run_model_get_logliks_seasonalonly <- function(parameter_guesses, bb = "no",
-                                               model_type) {
-  # combine the parameters
+  Result <- cbind(Median, CI)
 
-  parameters <- create_parameters(unlist(parameter_guesses))
+  posteriori <- paste(
+    apply(Result, 1, function(x) sprintf("%.6f (%.6f, %.6f)", x[1], x[2], x[3])),
+    sep = " "
+  )
 
-  # print(parameters)
-  # Run the model - seasonal corona only. For 20 years + a bit, to find low point (lp)
-  output_s <- run_model_seasonal(parameters, model_type)
-  colnames(output_s) <- naming_states(model_type)
-  # Get the incidence of reporting
-  reporting <- summary_stats_reported_seasonal(output_s, type = model_type)
-
-  # reporting_selection2 <- reporting[required_set, c("time", ..all_others)
-  # ][ , rowSums(.SD), by= time]
-
-  # reject based on Techumseh
-  likelihood_test <- 0 # reject_seasonal_Tech(output_s, model_type)
-
-  if (likelihood_test == 0) {
-    # summaries
-    reportin_2020 <- summary_stats_reported_seasonal(output_s, type = model_type)
-    reportin_2020_daily <- summary_groups(reportin_2020)
-    # calculate likelihood of the data: monthly seasonal age
-    # if(bb == "no"){
-    #   lik_seasonal_ages <- calc_lik_seasonal_ages(reportin_2020_daily, parameters)
-    # } else if (bb == "yes"){
-    #   lik_seasonal_ages <- calc_lik_seasonal_ages_bb(reportin_2020_daily, parameters)
-    # }
-    if (bb == "binomial") {
-      lik_seasonal_ages <- calc_lik_seasonal_ages_binomial(reportin_2020_daily, parameters)
-    }
-
-    likelihood_data <- lik_seasonal_ages
-  } else {
-    likelihood_data <- likelihood_test
-
-    lik_seasonal_ages <- NA
-    lik_covid_deaths <- NA
-  }
-
-  likelihood_total <- likelihood_data #+ get_llprior
-  return(c(likelihood_total))
+  return(list(
+    Traceplot = Traceplot,
+    Densplot = Densplot,
+    # Geltest = Geltest,
+    Heitest = Heitest,
+    Median = Median,
+    CI = CI,
+    posteriori = posteriori
+  ))
 }
 
 
 
-calc_lik_seasonal_ages_binomial <- function(reportin_2020_daily, parameters,
-                                            covid_run = F) {
-  # reported seasonal cases by age over time
-  reportin_seasonal <- melt.data.table(reportin_2020_daily[, c("time", ..all_oths)],
-    id = "time"
-  ) # 对原始数据操作，宽表转长表
+FindPeak <- function(SimDat, span = 29, TargetDat = RefPeak) {
+  Peak <- lapply(SimDat[, 3:13], splus2R::peaks, span = span)
 
-  # get the right values
-  if (covid_run == T) {
-    relevant_dates <- seasonal_dates
-    real_data <- seasonal_19_20
-  } else if (covid_run == F) {
-    relevant_dates <- seasonal_dates_15
-    real_data <- seasonal_15_20
+  PeakFind <- lapply(Peak, \(x) SimDat[x, 1:2])
+
+  PeakFind <- lapply(names(PeakFind), \(name) {
+    dt <- PeakFind[[name]]
+    dt[, age_group := name]
+    dt[, week := paste0(week, "-1")]
+    dt <- dt[!month(time) %in% c(3, 4, 5, 6, 7, 8), ]
+    return(dt)
+  })
+
+  PeakFindModify <- do.call(rbind, PeakFind)
+
+  result <- cbind(TargetDat, PeakFindModify)
+
+  result[, age_group := NULL][, TimeInterval := time - RefDate]
+
+  setcolorder(result, c("age_group", "RefWeek", "week", "RefDate", "time"))
+
+  return(result)
+}
+
+
+FindPeak.2age <- function(SimDat, span = 29, TargetDat = RefPeak_2age) {
+  SimDat[, Reported_G1 := rowSums(.SD), .SDcols = paste0("Reported_G", 1:5)]
+  SimDat[, Reported_G2 := rowSums(.SD), .SDcols = paste0("Reported_G", 6:11)]
+  SimDat[, paste0("Reported_G", 3:11) := NULL]
+
+  Peak <- lapply(SimDat[, 3:4], splus2R::peaks, span = span)
+
+  PeakFind <- lapply(Peak, \(x) SimDat[x, 1:2])
+
+  PeakFind <- lapply(names(PeakFind), \(name) {
+    dt <- PeakFind[[name]]
+    dt[, age_group := name]
+    dt[, week := paste0(week, "-1")]
+    dt <- dt[!month(time) %in% c(3, 4, 5, 6, 7, 8), ]
+    return(dt)
+  })
+
+  PeakFindModify <- do.call(rbind, PeakFind)
+
+  result <- cbind(TargetDat, PeakFindModify)
+
+  result[, age_group := NULL][, TimeInterval := time - RefDate]
+
+  setcolorder(result, c("age_group", "RefWeek", "week", "RefDate", "time"))
+
+  return(result)
+}
+
+
+
+
+MCMC.PosteriorPlot <- function(
+    dat, MedianDat, PeakDat, RealDat = RealDat_plot,
+    save = FALSE, path = NULL, width = 12, height = 6) {
+  Real <- copy(RealDat)
+  Real <- Real[, week := ISOweek::ISOweek2date(paste0(week, "-1"))][, age_group := factor(age_group,
+    levels = c(
+      "Reported_G1", "Reported_G2", "Reported_G3",
+      "Reported_G4", "Reported_G5", "Reported_G6",
+      "Reported_G7", "Reported_G8", "Reported_G9",
+      "Reported_G10", "Reported_G11"
+    ),
+    labels = c(
+      "0-2m", "3-5m", "6-11m", "12-23m", "2-4y", "5-19y",
+      "20-59y", "60-64y", "65-69y", "70-74y", "75+y"
+    )
+  )]
+
+  MedianDat <- melt.data.table(MedianDat, id.vars = c("time", "week"), variable.name = "age_group", value.name = "Cases")
+  MedianDat <- MedianDat[, week := ISOweek::ISOweek2date(paste0(week, "-1"))][, age_group := factor(age_group,
+    levels = c(
+      "Reported_G1", "Reported_G2", "Reported_G3",
+      "Reported_G4", "Reported_G5", "Reported_G6",
+      "Reported_G7", "Reported_G8", "Reported_G9",
+      "Reported_G10", "Reported_G11"
+    ),
+    labels = c(
+      "0-2m", "3-5m", "6-11m", "12-23m", "2-4y", "5-19y",
+      "20-59y", "60-64y", "65-69y", "70-74y", "75+y"
+    )
+  )] %>% as.data.frame()
+
+
+  Posteriori_Dat <- copy(dat)
+  CasesResult <- lapply(seq_along(Posteriori_Dat), \(n_Sim){
+    SubCases <- dat[[n_Sim]]
+    MeltTable <- melt.data.table(SubCases, id.vars = c("time", "week"), variable.name = "age_group", value.name = "Cases")
+    MeltTable <- MeltTable[, age_group := factor(age_group,
+      levels = c(
+        "Reported_G1", "Reported_G2", "Reported_G3",
+        "Reported_G4", "Reported_G5", "Reported_G6",
+        "Reported_G7", "Reported_G8", "Reported_G9",
+        "Reported_G10", "Reported_G11"
+      ),
+      labels = c(
+        "0-2m", "3-5m", "6-11m", "12-23m", "2-4y", "5-19y",
+        "20-59y", "60-64y", "65-69y", "70-74y", "75+y"
+      )
+    )][, ":="(week = ISOweek::ISOweek2date(paste0(week, "-1")),
+      SimNum = n_Sim)]
+  })
+
+  CasesResult_Bind <- rbindlist(CasesResult) %>% as.data.frame()
+
+  PeakLead <- copy(PeakDat)
+  PeakLead <- PeakLead[TimeInterval > 0][, age_group := factor(age_group,
+    levels = c(
+      "Reported_G1", "Reported_G2", "Reported_G3",
+      "Reported_G4", "Reported_G5", "Reported_G6",
+      "Reported_G7", "Reported_G8", "Reported_G9",
+      "Reported_G10", "Reported_G11"
+    ),
+    labels = c(
+      "0-2m", "3-5m", "6-11m", "12-23m", "2-4y", "5-19y",
+      "20-59y", "60-64y", "65-69y", "70-74y", "75+y"
+    )
+  )][, TimeInterval := as.numeric(TimeInterval)] %>% as.data.frame()
+
+  PeakBehind <- copy(PeakDat)
+  PeakBehind <- PeakBehind[TimeInterval < 0][, age_group := factor(age_group,
+    levels = c(
+      "Reported_G1", "Reported_G2", "Reported_G3",
+      "Reported_G4", "Reported_G5", "Reported_G6",
+      "Reported_G7", "Reported_G8", "Reported_G9",
+      "Reported_G10", "Reported_G11"
+    ),
+    labels = c(
+      "0-2m", "3-5m", "6-11m", "12-23m", "2-4y", "5-19y",
+      "20-59y", "60-64y", "65-69y", "70-74y", "75+y"
+    )
+  )][, TimeInterval := as.numeric(TimeInterval)] %>% as.data.frame()
+
+  PeakSame <- copy(PeakDat)
+  PeakSame <- PeakSame[TimeInterval == 0][, age_group := factor(age_group,
+    levels = c(
+      "Reported_G1", "Reported_G2", "Reported_G3",
+      "Reported_G4", "Reported_G5", "Reported_G6",
+      "Reported_G7", "Reported_G8", "Reported_G9",
+      "Reported_G10", "Reported_G11"
+    ),
+    labels = c(
+      "0-2m", "3-5m", "6-11m", "12-23m", "2-4y", "5-19y",
+      "20-59y", "60-64y", "65-69y", "70-74y", "75+y"
+    )
+  )][, TimeInterval := as.numeric(TimeInterval)] %>% as.data.frame()
+
+  PeakDat <- copy(PeakDat)
+  PeakDat <- PeakDat[, age_group := factor(age_group,
+    levels = c(
+      "Reported_G1", "Reported_G2", "Reported_G3",
+      "Reported_G4", "Reported_G5", "Reported_G6",
+      "Reported_G7", "Reported_G8", "Reported_G9",
+      "Reported_G10", "Reported_G11"
+    ),
+    labels = c(
+      "0-2m", "3-5m", "6-11m", "12-23m", "2-4y", "5-19y",
+      "20-59y", "60-64y", "65-69y", "70-74y", "75+y"
+    )
+  )][, TimeInterval := as.numeric(TimeInterval)] %>% as.data.frame()
+
+
+  Fig <- ggplot() +
+    geom_line(data = Real, aes(x = week, y = summ, group = age_group), linewidth = 1.2) +
+    geom_line(data = CasesResult_Bind, aes(x = week, y = Cases, group = interaction(SimNum, age_group)), alpha = 0.05, colour = "#fe4b65", linewidth = 0.8) +
+    geom_line(data = MedianDat, aes(x = week, y = Cases, group = age_group), colour = "#c9283a", linewidth = 1) +
+    geom_vline(xintercept = as.Date(c("2018-01-01", "2019-01-01", "2020-01-01")), linetype = "dashed", alpha = 0.2) +
+    geom_vline(data = PeakDat, aes(xintercept = as.Date(RefDate), group = age_group), alpha = 0.7) +
+    geom_rect(data = PeakLead, aes(xmin = as.Date(RefDate), xmax = as.Date(time), ymin = 100, ymax = 105, group = age_group), fill = "#fe3627") +
+    geom_label(data = PeakLead, aes(x = as.Date(RefDate) + 55, y = 85, label = TimeInterval, group = age_group), color = "black", fill = "white", size = 4, vjust = -0.3) +
+    geom_rect(data = PeakBehind, aes(xmin = time, xmax = RefDate, ymin = 95, ymax = 100, group = age_group), fill = "#049143") +
+    geom_label(data = PeakBehind, aes(x = as.Date(RefDate) - 55, y = 85, label = TimeInterval, group = age_group), color = "black", fill = "white", size = 4, vjust = -0.3) +
+    geom_label(data = PeakSame, aes(x = as.Date(RefDate), y = 85, label = TimeInterval, group = age_group), color = "black", fill = "white", size = 4, vjust = -0.3) +
+    labs(x = "Date", y = "Number of cases") +
+    theme_minimal() +
+    scale_x_date(date_labels = "%Y") +
+    facet_wrap(~age_group) +
+    theme(
+      axis.text.x = element_text(size = 18, hjust = 1),
+      axis.text.y = element_text(size = 18),
+      axis.title = element_text(size = 24),
+      strip.text = element_text(size = 24)
+    )
+
+  if (save == TRUE) {
+    ggsave(Fig, file = paste0(path, ".pdf"), width = width, height = height)
   }
-  reportin_seasonal[, date := as.Date(time, origin = lp_15)]
-  # change from daily to monthly
-  for (i in 1:(length(relevant_dates) - 1)) {
-    reportin_seasonal[
-      date >= relevant_dates[i] &
-        date < relevant_dates[i + 1],
-      year_week := relevant_dates[i]
-    ]
-  } # 找到日期对应的周数
 
-  to_match <- na.omit(reportin_seasonal[, sum(value, na.rm = T), by = c(
-    "year_week",
-    "variable"
-  )])
-  # add the real data
-  to_match[real_data, on = c("year_week", "variable"), true_value := i.value]
+  return(Fig)
+}
 
 
-  to_match[variable == "OTHER_p0", likelihood := dbinom(
-    x = true_value,
-    size = round(V1),
-    prob = parameters$seasonal_reported[1],
-    log = T
-  )]
-  to_match[variable == "OTHER_p5", likelihood := dbinom(
-    x = true_value,
-    size = round(V1),
-    prob = parameters$seasonal_reported[2],
-    log = T
-  )]
-  to_match[variable == "OTHER_p15", likelihood := dbinom(
-    x = true_value,
-    size = round(V1),
-    prob = parameters$seasonal_reported[3],
-    log = T
-  )]
-  to_match[variable == "OTHER_p45", likelihood := dbinom(
-    x = true_value,
-    size = round(V1),
-    prob = parameters$seasonal_reported[4],
-    log = T
-  )]
-  to_match[variable == "OTHER_p65", likelihood := dbinom(
-    x = true_value,
-    size = round(V1),
-    prob = parameters$seasonal_reported[5],
-    log = T
+MCMC.PosteriorPlot.2age <- function(
+    dat, MedianDat, PeakDat, RealDat = RealDat_plot_2age,
+    save = FALSE, path = NULL, width = 12, height = 6) {
+  Real <- copy(RealDat)
+  Real <- Real[, week := ISOweek::ISOweek2date(paste0(week, "-1"))][, age_group := factor(age_group,
+    levels = c("Reported_G1", "Reported_G2"),
+    labels = c("<5y", ">=5y")
   )]
 
+  MedianDat <- copy(MedianDat)
+  MedianDat[, Reported_G1 := rowSums(.SD), .SDcols = paste0("Reported_G", 1:5)]
+  MedianDat[, Reported_G2 := rowSums(.SD), .SDcols = paste0("Reported_G", 6:11)]
+  MedianDat[, paste0("Reported_G", 3:11) := NULL]
 
-  # for( stepper in 1:dim(to_match)[1]){
-  #   if(to_match[stepper,"variable"] == "OTHER_p0"){age_set = 1
-  #   } else if(to_match[stepper,"variable"] == "OTHER_p5"){age_set = 2
-  #   } else if(to_match[stepper,"variable"] == "OTHER_p15"){age_set = 3
-  #   } else if(to_match[stepper,"variable"] == "OTHER_p45"){age_set = 4
-  #   } else if(to_match[stepper,"variable"] == "OTHER_p65"){age_set = 5}
-  #   # work out quantile intervals
-  #
-  #   to_match[stepper,"likelihood"] <- dbinom(x=as.numeric(to_match[stepper, "true_value"]),
-  #                                            size = round(as.numeric(to_match[stepper,"V1"])),
-  #                                            prob = parameters$seasonal_reported[age_set]
-  #                                            , log=T)
-  #
-  # }
+  MedianDat <- melt.data.table(MedianDat, id.vars = c("time", "week"), variable.name = "age_group", value.name = "Cases")
+  MedianDat <- MedianDat[, week := ISOweek::ISOweek2date(paste0(week, "-1"))][, age_group := factor(age_group,
+    levels = c("Reported_G1", "Reported_G2"),
+    labels = c("<5y", ">=5y")
+  )] %>% as.data.frame()
 
-  # weight the off_seasons by half
-  lik_summary <- to_match[, sum(likelihood, na.rm = T)]
-  lik_out <- lik_summary
 
-  if (any(is.nan(to_match$likelihood))) {
-    lik_out <- -10000
+
+  Posteriori_Dat <- copy(dat)
+  CasesResult <- lapply(seq_along(Posteriori_Dat), \(n_Sim){
+    SubCases <- dat[[n_Sim]]
+    SubCases[, Reported_G1 := rowSums(.SD), .SDcols = paste0("Reported_G", 1:5)]
+    SubCases[, Reported_G2 := rowSums(.SD), .SDcols = paste0("Reported_G", 6:11)]
+    SubCases[, paste0("Reported_G", 3:11) := NULL]
+
+
+    MeltTable <- melt.data.table(SubCases, id.vars = c("time", "week"), variable.name = "age_group", value.name = "Cases")
+    MeltTable <- MeltTable[, age_group := factor(age_group,
+      levels = c("Reported_G1", "Reported_G2"),
+      labels = c("<5y", ">=5y")
+    )][, ":="(week = ISOweek::ISOweek2date(paste0(week, "-1")),
+      SimNum = n_Sim)]
+  })
+
+  CasesResult_Bind <- rbindlist(CasesResult) %>% as.data.frame()
+
+  PeakLead <- copy(PeakDat)
+  PeakLead <- PeakLead[TimeInterval > 0][, age_group := factor(age_group,
+    levels = c("Reported_G1", "Reported_G2"),
+    labels = c("<5y", ">=5y")
+  )][, TimeInterval := as.numeric(TimeInterval)] %>% as.data.frame()
+
+  PeakBehind <- copy(PeakDat)
+  PeakBehind <- PeakBehind[TimeInterval < 0][, age_group := factor(age_group,
+    levels = c("Reported_G1", "Reported_G2"),
+    labels = c("<5y", ">=5y")
+  )][, TimeInterval := as.numeric(TimeInterval)] %>% as.data.frame()
+
+  PeakSame <- copy(PeakDat)
+  PeakSame <- PeakSame[TimeInterval == 0][, age_group := factor(age_group,
+    levels = c("Reported_G1", "Reported_G2"),
+    labels = c("<5y", ">=5y")
+  )][, TimeInterval := as.numeric(TimeInterval)] %>% as.data.frame()
+
+  PeakDat <- copy(PeakDat)
+  PeakDat <- PeakDat[, age_group := factor(age_group,
+    levels = c("Reported_G1", "Reported_G2"),
+    labels = c("<5y", ">=5y")
+  )][, TimeInterval := as.numeric(TimeInterval)] %>% as.data.frame()
+
+
+  Fig <- ggplot() +
+    geom_line(data = Real, aes(x = week, y = summ, group = age_group), linewidth = 1.2) +
+    geom_line(data = CasesResult_Bind, aes(x = week, y = Cases, group = interaction(SimNum, age_group)), alpha = 0.05, colour = "#fe4b65", linewidth = 0.8) +
+    geom_line(data = MedianDat, aes(x = week, y = Cases, group = age_group), colour = "#c9283a", linewidth = 1) +
+    geom_vline(xintercept = as.Date(c("2018-01-01", "2019-01-01", "2020-01-01")), linetype = "dashed", alpha = 0.2) +
+    geom_vline(data = PeakDat, aes(xintercept = as.Date(RefDate), group = age_group), alpha = 0.7) +
+    geom_rect(data = PeakLead, aes(xmin = as.Date(RefDate), xmax = as.Date(time), ymin = 320, ymax = 325, group = age_group), fill = "#fe3627") +
+    geom_label(data = PeakLead, aes(x = as.Date(RefDate) + 55, y = 325, label = TimeInterval, group = age_group), color = "black", fill = "white", size = 4, vjust = -0.3) +
+    geom_rect(data = PeakBehind, aes(xmin = time, xmax = RefDate, ymin = 320, ymax = 325, group = age_group), fill = "#049143") +
+    geom_label(data = PeakBehind, aes(x = as.Date(RefDate) - 55, y = 325, label = TimeInterval, group = age_group), color = "black", fill = "white", size = 4, vjust = -0.3) +
+    geom_label(data = PeakSame, aes(x = as.Date(RefDate), y = 325, label = TimeInterval, group = age_group), color = "black", fill = "white", size = 4, vjust = -0.3) +
+    labs(x = "Date", y = "Number of cases") +
+    theme_minimal() +
+    scale_x_date(date_labels = "%Y") +
+    facet_wrap(~age_group) +
+    theme(
+      axis.text.x = element_text(size = 18, hjust = 1),
+      axis.text.y = element_text(size = 18),
+      axis.title = element_text(size = 24),
+      strip.text = element_text(size = 24)
+    )
+
+  if (save == TRUE) {
+    ggsave(Fig, file = paste0(path, ".pdf"), width = width, height = height)
   }
-  return(lik_out)
+
+  return(Fig)
+}
+
+
+
+Model.RunSim.Immu <- function(Parm, lag = FALSE) {
+  # times <- seq(from = 1, to = 365 * Parm[["years"]])
+  times <- as.numeric(seq(from = as.Date(Parm[["year_start"]]), to = as.Date(Parm[["year_end"]]), by = 1))
+
+  state <- Get.InitState(
+    num_age = Parm[["num_age"]],
+    M_num = Parm[["M_num"]],
+    population = Parm[["population"]],
+    inf_num = Parm[["inf_num"]],
+    model = "SIRV"
+  )
+
+  SimResult <- ode(
+    y = state, times = times, func = ModelSimCpp_Immu, parms = Parm, method = "lsoda"
+  )
+  SimResult <- Model.GetI(SimResult, Parm[["Hosp_rate"]], lag = lag)
+
+  return(SimResult)
+}
+
+
+# Calculate the vaccination protection
+Vac.Protection <- function(
+    ModelParm, lag, Age_Sus, Vac_start, Effacy, VacProp,
+    ModelType = c("Inpatient", "Infection")) {
+  if (ModelType == "Infection") {
+    ModelParm[5:15] <- 1
+  }
+
+  ImmuHosp <- Model.RunSim.Immu(Parm = Parameter.Create(
+    beta_base = ModelParm[1],
+    beta_seasonal = ModelParm[2],
+    phi = ModelParm[3],
+    seasonal_wavelength = ModelParm[4],
+    Hosp_rate = ModelParm[5:15],
+    Age_Sus = Age_Sus,
+    Vac_start = Vac_start,
+    Effacy = Effacy,
+    VacProp = VacProp
+  ), lag = lag)
+
+  ImmuHosp_NewConfirm <- copy(ImmuHosp[[2]])
+
+  ImmuHosp_NewConfirm <- ImmuHosp_NewConfirm[, (3:13) := lapply(.SD, round),
+    .SDcols = c(3:13)
+  ][, week_num := substr(week, 7, 8)]
+
+  ImmuHosp_NewConfirm_filter <- ImmuHosp_NewConfirm[week_num %in% c(1:10, 40:53), ]
+
+  ImmuHosp_ByWeek <- ImmuHosp_NewConfirm_filter[, lapply(.SD, sum), .SDcols = c(3:13), by = .(week_num)]
+
+  ImmuHosp_ByWeek_long <- melt(ImmuHosp_ByWeek, id.vars = "week_num", variable.name = "age_group", value.name = "cases")
+
+  ImmuHosp_summ <- ImmuHosp_ByWeek_long[, .(cases = sum(cases)), by = .(age_group)]
+
+
+  ImmuHosp_summ_2age <- copy(ImmuHosp_summ)[, age_group := fcase(
+    age_group %in% c("Reported_G1", "Reported_G2", "Reported_G3", "Reported_G4", "Reported_G5"), "Reported_G1",
+    default = "Reported_G2"
+  )][, .(cases = sum(cases)), by = .(age_group)]
+
+
+
+
+  BaseHosp <- Model.RunSim.Immu(Parm = Parameter.Create(
+    beta_base = ModelParm[1],
+    beta_seasonal = ModelParm[2],
+    phi = ModelParm[3],
+    seasonal_wavelength = ModelParm[4],
+    Hosp_rate = ModelParm[5:15],
+    Age_Sus = Age_Sus,
+    Vac_start = Vac_start,
+    Effacy = 0,
+    VacProp = VacProp
+  ), lag = lag)
+
+  BaseHosp_NewConfirm <- copy(BaseHosp[[2]])
+
+  BaseHosp_NewConfirm <- BaseHosp_NewConfirm[, (3:13) := lapply(.SD, round),
+    .SDcols = c(3:13)
+  ][, week_num := substr(week, 7, 8)]
+
+  BaseHosp_NewConfirm_filter <- BaseHosp_NewConfirm[week_num %in% c(1:10, 40:53), ]
+
+  BaseHosp_ByWeek <- BaseHosp_NewConfirm_filter[, lapply(.SD, sum), .SDcols = c(3:13), by = .(week_num)]
+
+  BaseHosp_ByWeek_long <- melt(BaseHosp_ByWeek, id.vars = "week_num", variable.name = "age_group", value.name = "cases")
+
+  BaseHosp_summ <- BaseHosp_ByWeek_long[, .(cases = sum(cases)), by = .(age_group)]
+
+
+  BaseHosp_summ_2age <- copy(BaseHosp_summ)[, age_group := fcase(
+    age_group %in% c("Reported_G1", "Reported_G2", "Reported_G3", "Reported_G4", "Reported_G5"), "Reported_G1",
+    default = "Reported_G2"
+  )][, .(cases = sum(cases)), by = .(age_group)]
+
+
+  NetProtect <- copy(BaseHosp_summ)[, cases := cases - ImmuHosp_summ$cases]
+  NetProtect_2age <- copy(BaseHosp_summ_2age)[, cases := cases - ImmuHosp_summ_2age$cases]
+
+  VacProtection <- copy(BaseHosp_summ)[, protect := round(((cases - ImmuHosp_summ$cases) / cases) * 100, 2)]
+  VacProtection_2age <- copy(BaseHosp_summ_2age)[, protect := round(((cases - ImmuHosp_summ_2age$cases) / cases) * 100, 2)]
+
+  DirectProtect <- VacProtection_2age[1, 3]
+  IndirectProtect <- VacProtection_2age[2, 3]
+
+
+  BaseCase <- copy(BaseHosp_summ_2age)[, cases := sum(cases)][1, 2]
+  ImmuCase <- copy(ImmuHosp_summ_2age)[, cases := sum(cases)][1, 2]
+
+  TotalProtect <- round(((BaseCase - ImmuCase) / BaseCase) * 100, 2)
+
+  return(list(
+    NetProtect = NetProtect,
+    NetProtect_2age = NetProtect_2age,
+    VacProtection = VacProtection,
+    DirectProtect = DirectProtect,
+    IndirectProtect = IndirectProtect,
+    TotalProtect = TotalProtect
+  ))
+}
+
+
+
+
+Vac.Posterior <- function(VacList) {
+  DirectProtect <- do.call(rbind, lapply(VacList, \(x) x[["DirectProtect"]]))
+  IndirectProtect <- do.call(rbind, lapply(VacList, \(x) x[["IndirectProtect"]]))
+  TotalProtect <- do.call(rbind, lapply(VacList, \(x) x[["TotalProtect"]]))
+
+  DirectProtect_CI <- round(quantile(unlist(DirectProtect), probs = c(0.025, 0.5, 0.975)), 2)
+  IndirectProtect_CI <- round(quantile(unlist(IndirectProtect), probs = c(0.025, 0.5, 0.975)), 2)
+  TotalProtect_CI <- round(quantile(unlist(TotalProtect), probs = c(0.025, 0.5, 0.975)), 2)
+
+  result <- data.frame(
+    type = c("DirectProtect", "IndirectProtect", "TotalProtect"),
+    median = c(DirectProtect_CI[2], IndirectProtect_CI[2], TotalProtect_CI[2]),
+    lci = c(DirectProtect_CI[1], IndirectProtect_CI[1], TotalProtect_CI[1]),
+    uci = c(DirectProtect_CI[3], IndirectProtect_CI[3], TotalProtect_CI[3])
+  )
+
+  result$CI <- paste0(result$median, " (", result$lci, " - ", result$uci, ")")
+  return(result)
 }

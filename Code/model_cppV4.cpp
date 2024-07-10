@@ -27,9 +27,9 @@ NumericVector CalLambda(NumericVector state, int num_age, NumericMatrix contact_
         SumLambda = 0;
         for (size_t j = 0; j < num_age; j++)
         {
-            double I0 = state[2 + j * 9];
-            double I1 = state[5 + j * 9];
-            double I2 = state[8 + j * 9];
+            double I0 = state[2 + j * 10];
+            double I1 = state[5 + j * 10];
+            double I2 = state[8 + j * 10];
             SumLambda += contact_str(i, j) * (I0 + I1 + I2);
         }
         lambda[i] = beta * SumLambda;
@@ -39,8 +39,15 @@ NumericVector CalLambda(NumericVector state, int num_age, NumericMatrix contact_
 
 double NormalDensity(double x, double mean, double sd)
 {
-    return exp(-((x / 365 - mean)) * ((x / 365 - mean)) / (2 * sd * sd));
+    const double pi = 3.14159265358979323846;
+    return (1.0 / (sd * sqrt(2 * pi))) * exp(-0.5 * pow((x - mean) / sd, 2));
 };
+
+double SymmSeasonal(double x, double phi, double seasonal_wavelength)
+{
+    double diff = fmod((x - phi + 182.5), 365) - 182.5;
+    return NormalDensity(diff, 0, seasonal_wavelength);
+}
 
 // [[Rcpp::plugins("cpp11")]]
 // [[Rcpp::export]]
@@ -67,12 +74,14 @@ List ModelSimCpp(double times, NumericVector state, List parms)
 
     NumericVector Age_Sus = parms["Age_Sus"];
 
+    NumericVector omega_vac = parms["omega_vac"];
+
     // seasonal function
     // double beta = beta_base * (1 + beta_seasonal * cos((2 * M_PI * times / 365) - phi));
     // double beta = beta_base + beta_seasonal * cos((2 * M_PI * times / 365) - phi);
 
-    double NormSeasonal = NormalDensity(fmod(times, 365), phi - 0.5, seasonal_wavelength) +
-                          NormalDensity(fmod(times, 365), phi + 0.5, seasonal_wavelength); // For symmetry
+    double NormSeasonal = SymmSeasonal(times, phi, seasonal_wavelength);
+
     // double beta = beta_base * (1 + beta_seasonal * NormSeasonal);
     double beta = beta_base + beta_seasonal * NormSeasonal;
 
@@ -87,7 +96,7 @@ List ModelSimCpp(double times, NumericVector state, List parms)
     {
         for (size_t j = 1; j < 10; j++)
         {
-            dying_pop += state[j + 9 * (age - 1)];
+            dying_pop += state[j + 10 * (age - 1)];
         }
     }
 
