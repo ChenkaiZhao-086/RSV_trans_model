@@ -1,12 +1,13 @@
 # sourceCpp("Code/model_immu.cpp")
-sourceCpp("Code/model_immuV3.cpp")
+# sourceCpp("Code/model_immuV3.cpp")
+sourceCpp("Code/model_immuV4.cpp")
 
 ## efficacy: 60, 70, 80
 
 ## coverage: 60, 80
 
 ## A. 0-5m; B. 6-11m; C. 12-23m; D. 2-4y;
-## A+B; A+B+C; A+B+C+D？
+## A(S2): A+B; B(S3): A+B+C; C(S4): A+B+C+D
 
 ### Base scenario ###########################################################################################
 ### Coverage: 60%, A+B --------------------------------------------------------------------------------------
@@ -16,8 +17,8 @@ sourceCpp("Code/model_immuV3.cpp")
 SBase_E6C6A <- Vac.Batch(
     MCMC_Result = PosterioriCheck_Sbase, VacAgeGroup = "S2", Age_Sus = c(1, 1),
     Vac_start = "2018-08-30", Effacy_I = 0.6, Effacy_Hosp = 0.7,
-    VacProp = 0.6, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.6, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 #-----------------------------------------------------------
@@ -26,8 +27,8 @@ SBase_E6C6A <- Vac.Batch(
 SBase_E7C6A <- Vac.Batch(
     MCMC_Result = PosterioriCheck_Sbase, VacAgeGroup = "S2", Age_Sus = c(1, 1),
     Vac_start = "2018-08-30", Effacy_I = 0.7, Effacy_Hosp = 0.8,
-    VacProp = 0.6, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.6, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 #-----------------------------------------------------------
@@ -36,8 +37,8 @@ SBase_E7C6A <- Vac.Batch(
 SBase_E8C6A <- Vac.Batch(
     MCMC_Result = PosterioriCheck_Sbase, VacAgeGroup = "S2", Age_Sus = c(1, 1),
     Vac_start = "2018-08-30", Effacy_I = 0.8, Effacy_Hosp = 0.9,
-    VacProp = 0.6, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.6, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 
@@ -49,8 +50,8 @@ SBase_E8C6A <- Vac.Batch(
 SBase_E6C8A <- Vac.Batch(
     MCMC_Result = PosterioriCheck_Sbase, VacAgeGroup = "S2", Age_Sus = c(1, 1),
     Vac_start = "2018-08-30", Effacy_I = 0.6, Effacy_Hosp = 0.7,
-    VacProp = 0.8, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.8, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 #-----------------------------------------------------------
@@ -59,8 +60,8 @@ SBase_E6C8A <- Vac.Batch(
 SBase_E7C8A <- Vac.Batch(
     MCMC_Result = PosterioriCheck_Sbase, VacAgeGroup = "S2", Age_Sus = c(1, 1),
     Vac_start = "2018-08-30", Effacy_I = 0.7, Effacy_Hosp = 0.8,
-    VacProp = 0.8, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.8, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 #-----------------------------------------------------------
@@ -69,8 +70,8 @@ SBase_E7C8A <- Vac.Batch(
 SBase_E8C8A <- Vac.Batch(
     MCMC_Result = PosterioriCheck_Sbase, VacAgeGroup = "S2", Age_Sus = c(1, 1),
     Vac_start = "2018-08-30", Effacy_I = 0.8, Effacy_Hosp = 0.9,
-    VacProp = 0.8, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.8, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 
@@ -82,8 +83,8 @@ SBase_E8C8A <- Vac.Batch(
 SBase_E6C6B <- Vac.Batch(
     MCMC_Result = PosterioriCheck_Sbase, VacAgeGroup = "S3", Age_Sus = c(1, 1),
     Vac_start = "2018-08-30", Effacy_I = 0.6, Effacy_Hosp = 0.7,
-    VacProp = 0.6, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.6, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 #-----------------------------------------------------------
@@ -92,8 +93,8 @@ SBase_E6C6B <- Vac.Batch(
 SBase_E7C6B <- Vac.Batch(
     MCMC_Result = PosterioriCheck_Sbase, VacAgeGroup = "S3", Age_Sus = c(1, 1),
     Vac_start = "2018-08-30", Effacy_I = 0.7, Effacy_Hosp = 0.8,
-    VacProp = 0.6, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.6, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 #-----------------------------------------------------------
@@ -102,8 +103,8 @@ SBase_E7C6B <- Vac.Batch(
 SBase_E8C6B <- Vac.Batch(
     MCMC_Result = PosterioriCheck_Sbase, VacAgeGroup = "S3", Age_Sus = c(1, 1),
     Vac_start = "2018-08-30", Effacy_I = 0.8, Effacy_Hosp = 0.9,
-    VacProp = 0.6, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.6, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 
@@ -114,8 +115,8 @@ SBase_E8C6B <- Vac.Batch(
 SBase_E6C8B <- Vac.Batch(
     MCMC_Result = PosterioriCheck_Sbase, VacAgeGroup = "S3", Age_Sus = c(1, 1),
     Vac_start = "2018-08-30", Effacy_I = 0.6, Effacy_Hosp = 0.7,
-    VacProp = 0.8, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.8, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 #-----------------------------------------------------------
@@ -124,8 +125,8 @@ SBase_E6C8B <- Vac.Batch(
 SBase_E7C8B <- Vac.Batch(
     MCMC_Result = PosterioriCheck_Sbase, VacAgeGroup = "S3", Age_Sus = c(1, 1),
     Vac_start = "2018-08-30", Effacy_I = 0.7, Effacy_Hosp = 0.8,
-    VacProp = 0.8, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.8, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 #-----------------------------------------------------------
@@ -134,8 +135,8 @@ SBase_E7C8B <- Vac.Batch(
 SBase_E8C8B <- Vac.Batch(
     MCMC_Result = PosterioriCheck_Sbase, VacAgeGroup = "S3", Age_Sus = c(1, 1),
     Vac_start = "2018-08-30", Effacy_I = 0.8, Effacy_Hosp = 0.9,
-    VacProp = 0.8, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.8, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 
@@ -147,8 +148,8 @@ SBase_E8C8B <- Vac.Batch(
 SBase_E6C6C <- Vac.Batch(
     MCMC_Result = PosterioriCheck_Sbase, VacAgeGroup = "S4", Age_Sus = c(1, 1),
     Vac_start = "2018-08-30", Effacy_I = 0.6, Effacy_Hosp = 0.7,
-    VacProp = 0.6, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.6, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 #-----------------------------------------------------------
@@ -157,8 +158,8 @@ SBase_E6C6C <- Vac.Batch(
 SBase_E7C6C <- Vac.Batch(
     MCMC_Result = PosterioriCheck_Sbase, VacAgeGroup = "S4", Age_Sus = c(1, 1),
     Vac_start = "2018-08-30", Effacy_I = 0.7, Effacy_Hosp = 0.8,
-    VacProp = 0.6, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.6, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 #-----------------------------------------------------------
@@ -167,8 +168,8 @@ SBase_E7C6C <- Vac.Batch(
 SBase_E8C6C <- Vac.Batch(
     MCMC_Result = PosterioriCheck_Sbase, VacAgeGroup = "S4", Age_Sus = c(1, 1),
     Vac_start = "2018-08-30", Effacy_I = 0.8, Effacy_Hosp = 0.9,
-    VacProp = 0.6, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.6, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 
@@ -179,8 +180,8 @@ SBase_E8C6C <- Vac.Batch(
 SBase_E6C8C <- Vac.Batch(
     MCMC_Result = PosterioriCheck_Sbase, VacAgeGroup = "S4", Age_Sus = c(1, 1),
     Vac_start = "2018-08-30", Effacy_I = 0.6, Effacy_Hosp = 0.7,
-    VacProp = 0.8, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.8, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 #-----------------------------------------------------------
@@ -189,8 +190,8 @@ SBase_E6C8C <- Vac.Batch(
 SBase_E7C8C <- Vac.Batch(
     MCMC_Result = PosterioriCheck_Sbase, VacAgeGroup = "S4", Age_Sus = c(1, 1),
     Vac_start = "2018-08-30", Effacy_I = 0.7, Effacy_Hosp = 0.8,
-    VacProp = 0.8, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.8, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 #-----------------------------------------------------------
@@ -199,8 +200,8 @@ SBase_E7C8C <- Vac.Batch(
 SBase_E8C8C <- Vac.Batch(
     MCMC_Result = PosterioriCheck_Sbase, VacAgeGroup = "S4", Age_Sus = c(1, 1),
     Vac_start = "2018-08-30", Effacy_I = 0.8, Effacy_Hosp = 0.9,
-    VacProp = 0.8, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.8, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 
@@ -215,8 +216,8 @@ SBase_E8C8C <- Vac.Batch(
 S42_E6C6A <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S42, VacAgeGroup = "S2", Age_Sus = c(0.4, 0.2),
     Vac_start = "2018-08-30", Effacy_I = 0.6, Effacy_Hosp = 0.7,
-    VacProp = 0.6, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.6, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 #-----------------------------------------------------------
@@ -225,8 +226,8 @@ S42_E6C6A <- Vac.Batch(
 S42_E7C6A <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S42, VacAgeGroup = "S2", Age_Sus = c(0.4, 0.2),
     Vac_start = "2018-08-30", Effacy_I = 0.7, Effacy_Hosp = 0.8,
-    VacProp = 0.6, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.6, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 #-----------------------------------------------------------
@@ -235,8 +236,8 @@ S42_E7C6A <- Vac.Batch(
 S42_E8C6A <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S42, VacAgeGroup = "S2", Age_Sus = c(0.4, 0.2),
     Vac_start = "2018-08-30", Effacy_I = 0.8, Effacy_Hosp = 0.9,
-    VacProp = 0.6, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.6, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 
@@ -248,8 +249,8 @@ S42_E8C6A <- Vac.Batch(
 S42_E6C8A <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S42, VacAgeGroup = "S2", Age_Sus = c(0.4, 0.2),
     Vac_start = "2018-08-30", Effacy_I = 0.6, Effacy_Hosp = 0.7,
-    VacProp = 0.8, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.8, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 #-----------------------------------------------------------
@@ -258,8 +259,8 @@ S42_E6C8A <- Vac.Batch(
 S42_E7C8A <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S42, VacAgeGroup = "S2", Age_Sus = c(0.4, 0.2),
     Vac_start = "2018-08-30", Effacy_I = 0.7, Effacy_Hosp = 0.8,
-    VacProp = 0.8, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.8, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 #-----------------------------------------------------------
@@ -268,8 +269,8 @@ S42_E7C8A <- Vac.Batch(
 S42_E8C8A <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S42, VacAgeGroup = "S2", Age_Sus = c(0.4, 0.2),
     Vac_start = "2018-08-30", Effacy_I = 0.8, Effacy_Hosp = 0.9,
-    VacProp = 0.8, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.8, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 
@@ -281,8 +282,8 @@ S42_E8C8A <- Vac.Batch(
 S42_E6C6B <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S42, VacAgeGroup = "S3", Age_Sus = c(0.4, 0.2),
     Vac_start = "2018-08-30", Effacy_I = 0.6, Effacy_Hosp = 0.7,
-    VacProp = 0.6, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.6, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 #-----------------------------------------------------------
@@ -291,8 +292,8 @@ S42_E6C6B <- Vac.Batch(
 S42_E7C6B <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S42, VacAgeGroup = "S3", Age_Sus = c(0.4, 0.2),
     Vac_start = "2018-08-30", Effacy_I = 0.7, Effacy_Hosp = 0.8,
-    VacProp = 0.6, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.6, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 #-----------------------------------------------------------
@@ -301,8 +302,8 @@ S42_E7C6B <- Vac.Batch(
 S42_E8C6B <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S42, VacAgeGroup = "S3", Age_Sus = c(0.4, 0.2),
     Vac_start = "2018-08-30", Effacy_I = 0.8, Effacy_Hosp = 0.9,
-    VacProp = 0.6, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.6, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 
@@ -313,8 +314,8 @@ S42_E8C6B <- Vac.Batch(
 S42_E6C8B <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S42, VacAgeGroup = "S3", Age_Sus = c(0.4, 0.2),
     Vac_start = "2018-08-30", Effacy_I = 0.6, Effacy_Hosp = 0.7,
-    VacProp = 0.8, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.8, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 #-----------------------------------------------------------
@@ -323,8 +324,8 @@ S42_E6C8B <- Vac.Batch(
 S42_E7C8B <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S42, VacAgeGroup = "S3", Age_Sus = c(0.4, 0.2),
     Vac_start = "2018-08-30", Effacy_I = 0.7, Effacy_Hosp = 0.8,
-    VacProp = 0.8, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.8, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 #-----------------------------------------------------------
@@ -333,8 +334,8 @@ S42_E7C8B <- Vac.Batch(
 S42_E8C8B <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S42, VacAgeGroup = "S3", Age_Sus = c(0.4, 0.2),
     Vac_start = "2018-08-30", Effacy_I = 0.8, Effacy_Hosp = 0.9,
-    VacProp = 0.8, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.8, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 
@@ -346,8 +347,8 @@ S42_E8C8B <- Vac.Batch(
 S42_E6C6C <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S42, VacAgeGroup = "S4", Age_Sus = c(0.4, 0.2),
     Vac_start = "2018-08-30", Effacy_I = 0.6, Effacy_Hosp = 0.7,
-    VacProp = 0.6, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.6, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 #-----------------------------------------------------------
@@ -356,8 +357,8 @@ S42_E6C6C <- Vac.Batch(
 S42_E7C6C <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S42, VacAgeGroup = "S4", Age_Sus = c(0.4, 0.2),
     Vac_start = "2018-08-30", Effacy_I = 0.7, Effacy_Hosp = 0.8,
-    VacProp = 0.6, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.6, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 #-----------------------------------------------------------
@@ -366,8 +367,8 @@ S42_E7C6C <- Vac.Batch(
 S42_E8C6C <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S42, VacAgeGroup = "S4", Age_Sus = c(0.4, 0.2),
     Vac_start = "2018-08-30", Effacy_I = 0.8, Effacy_Hosp = 0.9,
-    VacProp = 0.6, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.6, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 
@@ -378,8 +379,8 @@ S42_E8C6C <- Vac.Batch(
 S42_E6C8C <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S42, VacAgeGroup = "S4", Age_Sus = c(0.4, 0.2),
     Vac_start = "2018-08-30", Effacy_I = 0.6, Effacy_Hosp = 0.7,
-    VacProp = 0.8, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.8, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 #-----------------------------------------------------------
@@ -388,8 +389,8 @@ S42_E6C8C <- Vac.Batch(
 S42_E7C8C <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S42, VacAgeGroup = "S4", Age_Sus = c(0.4, 0.2),
     Vac_start = "2018-08-30", Effacy_I = 0.7, Effacy_Hosp = 0.8,
-    VacProp = 0.8, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.8, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 #-----------------------------------------------------------
@@ -398,8 +399,8 @@ S42_E7C8C <- Vac.Batch(
 S42_E8C8C <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S42, VacAgeGroup = "S4", Age_Sus = c(0.4, 0.2),
     Vac_start = "2018-08-30", Effacy_I = 0.8, Effacy_Hosp = 0.9,
-    VacProp = 0.8, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.8, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 
@@ -414,8 +415,8 @@ S42_E8C8C <- Vac.Batch(
 S43_E6C6A <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S43, VacAgeGroup = "S2", Age_Sus = c(0.4, 0.3),
     Vac_start = "2018-08-30", Effacy_I = 0.6, Effacy_Hosp = 0.7,
-    VacProp = 0.6, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.6, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 #-----------------------------------------------------------
@@ -424,8 +425,8 @@ S43_E6C6A <- Vac.Batch(
 S43_E7C6A <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S43, VacAgeGroup = "S2", Age_Sus = c(0.4, 0.3),
     Vac_start = "2018-08-30", Effacy_I = 0.7, Effacy_Hosp = 0.8,
-    VacProp = 0.6, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.6, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 #-----------------------------------------------------------
@@ -434,8 +435,8 @@ S43_E7C6A <- Vac.Batch(
 S43_E8C6A <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S43, VacAgeGroup = "S2", Age_Sus = c(0.4, 0.3),
     Vac_start = "2018-08-30", Effacy_I = 0.8, Effacy_Hosp = 0.9,
-    VacProp = 0.6, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.6, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 
@@ -447,8 +448,8 @@ S43_E8C6A <- Vac.Batch(
 S43_E6C8A <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S43, VacAgeGroup = "S2", Age_Sus = c(0.4, 0.3),
     Vac_start = "2018-08-30", Effacy_I = 0.6, Effacy_Hosp = 0.7,
-    VacProp = 0.8, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.8, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 #-----------------------------------------------------------
@@ -457,8 +458,8 @@ S43_E6C8A <- Vac.Batch(
 S43_E7C8A <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S43, VacAgeGroup = "S2", Age_Sus = c(0.4, 0.3),
     Vac_start = "2018-08-30", Effacy_I = 0.7, Effacy_Hosp = 0.8,
-    VacProp = 0.8, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.8, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 #-----------------------------------------------------------
@@ -467,8 +468,8 @@ S43_E7C8A <- Vac.Batch(
 S43_E8C8A <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S43, VacAgeGroup = "S2", Age_Sus = c(0.4, 0.3),
     Vac_start = "2018-08-30", Effacy_I = 0.8, Effacy_Hosp = 0.9,
-    VacProp = 0.8, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.8, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 
@@ -480,8 +481,8 @@ S43_E8C8A <- Vac.Batch(
 S43_E6C6B <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S43, VacAgeGroup = "S3", Age_Sus = c(0.4, 0.3),
     Vac_start = "2018-08-30", Effacy_I = 0.6, Effacy_Hosp = 0.7,
-    VacProp = 0.6, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.6, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 #-----------------------------------------------------------
@@ -490,8 +491,8 @@ S43_E6C6B <- Vac.Batch(
 S43_E7C6B <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S43, VacAgeGroup = "S3", Age_Sus = c(0.4, 0.3),
     Vac_start = "2018-08-30", Effacy_I = 0.7, Effacy_Hosp = 0.8,
-    VacProp = 0.6, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.6, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 #-----------------------------------------------------------
@@ -500,8 +501,8 @@ S43_E7C6B <- Vac.Batch(
 S43_E8C6B <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S43, VacAgeGroup = "S3", Age_Sus = c(0.4, 0.3),
     Vac_start = "2018-08-30", Effacy_I = 0.8, Effacy_Hosp = 0.9,
-    VacProp = 0.6, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.6, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 
@@ -512,8 +513,8 @@ S43_E8C6B <- Vac.Batch(
 S43_E6C8B <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S43, VacAgeGroup = "S3", Age_Sus = c(0.4, 0.3),
     Vac_start = "2018-08-30", Effacy_I = 0.6, Effacy_Hosp = 0.7,
-    VacProp = 0.8, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.8, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 #-----------------------------------------------------------
@@ -522,8 +523,8 @@ S43_E6C8B <- Vac.Batch(
 S43_E7C8B <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S43, VacAgeGroup = "S3", Age_Sus = c(0.4, 0.3),
     Vac_start = "2018-08-30", Effacy_I = 0.7, Effacy_Hosp = 0.8,
-    VacProp = 0.8, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.8, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 #-----------------------------------------------------------
@@ -532,8 +533,8 @@ S43_E7C8B <- Vac.Batch(
 S43_E8C8B <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S43, VacAgeGroup = "S3", Age_Sus = c(0.4, 0.3),
     Vac_start = "2018-08-30", Effacy_I = 0.8, Effacy_Hosp = 0.9,
-    VacProp = 0.8, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.8, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 
@@ -545,8 +546,8 @@ S43_E8C8B <- Vac.Batch(
 S43_E6C6C <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S43, VacAgeGroup = "S4", Age_Sus = c(0.4, 0.3),
     Vac_start = "2018-08-30", Effacy_I = 0.6, Effacy_Hosp = 0.7,
-    VacProp = 0.6, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.6, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 #-----------------------------------------------------------
@@ -555,8 +556,8 @@ S43_E6C6C <- Vac.Batch(
 S43_E7C6C <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S43, VacAgeGroup = "S4", Age_Sus = c(0.4, 0.3),
     Vac_start = "2018-08-30", Effacy_I = 0.7, Effacy_Hosp = 0.8,
-    VacProp = 0.6, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.6, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 #-----------------------------------------------------------
@@ -565,8 +566,8 @@ S43_E7C6C <- Vac.Batch(
 S43_E8C6C <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S43, VacAgeGroup = "S4", Age_Sus = c(0.4, 0.3),
     Vac_start = "2018-08-30", Effacy_I = 0.8, Effacy_Hosp = 0.9,
-    VacProp = 0.6, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.6, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 
@@ -577,8 +578,8 @@ S43_E8C6C <- Vac.Batch(
 S43_E6C8C <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S43, VacAgeGroup = "S4", Age_Sus = c(0.4, 0.3),
     Vac_start = "2018-08-30", Effacy_I = 0.6, Effacy_Hosp = 0.7,
-    VacProp = 0.8, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.8, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 #-----------------------------------------------------------
@@ -587,8 +588,8 @@ S43_E6C8C <- Vac.Batch(
 S43_E7C8C <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S43, VacAgeGroup = "S4", Age_Sus = c(0.4, 0.3),
     Vac_start = "2018-08-30", Effacy_I = 0.7, Effacy_Hosp = 0.8,
-    VacProp = 0.8, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.8, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 #-----------------------------------------------------------
@@ -597,8 +598,8 @@ S43_E7C8C <- Vac.Batch(
 S43_E8C8C <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S43, VacAgeGroup = "S4", Age_Sus = c(0.4, 0.3),
     Vac_start = "2018-08-30", Effacy_I = 0.8, Effacy_Hosp = 0.9,
-    VacProp = 0.8, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.8, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 
@@ -612,8 +613,8 @@ S43_E8C8C <- Vac.Batch(
 S44_E6C6A <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S44, VacAgeGroup = "S2", Age_Sus = c(0.4, 0.4),
     Vac_start = "2018-08-30", Effacy_I = 0.6, Effacy_Hosp = 0.7,
-    VacProp = 0.6, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.6, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 #-----------------------------------------------------------
@@ -622,8 +623,8 @@ S44_E6C6A <- Vac.Batch(
 S44_E7C6A <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S44, VacAgeGroup = "S2", Age_Sus = c(0.4, 0.4),
     Vac_start = "2018-08-30", Effacy_I = 0.7, Effacy_Hosp = 0.8,
-    VacProp = 0.6, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.6, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 #-----------------------------------------------------------
@@ -632,8 +633,8 @@ S44_E7C6A <- Vac.Batch(
 S44_E8C6A <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S44, VacAgeGroup = "S2", Age_Sus = c(0.4, 0.4),
     Vac_start = "2018-08-30", Effacy_I = 0.8, Effacy_Hosp = 0.9,
-    VacProp = 0.6, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.6, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 
@@ -645,8 +646,8 @@ S44_E8C6A <- Vac.Batch(
 S44_E6C8A <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S44, VacAgeGroup = "S2", Age_Sus = c(0.4, 0.4),
     Vac_start = "2018-08-30", Effacy_I = 0.6, Effacy_Hosp = 0.7,
-    VacProp = 0.8, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.8, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 #-----------------------------------------------------------
@@ -655,8 +656,8 @@ S44_E6C8A <- Vac.Batch(
 S44_E7C8A <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S44, VacAgeGroup = "S2", Age_Sus = c(0.4, 0.4),
     Vac_start = "2018-08-30", Effacy_I = 0.7, Effacy_Hosp = 0.8,
-    VacProp = 0.8, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.8, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 #-----------------------------------------------------------
@@ -665,8 +666,8 @@ S44_E7C8A <- Vac.Batch(
 S44_E8C8A <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S44, VacAgeGroup = "S2", Age_Sus = c(0.4, 0.4),
     Vac_start = "2018-08-30", Effacy_I = 0.8, Effacy_Hosp = 0.9,
-    VacProp = 0.8, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.8, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 
@@ -678,8 +679,8 @@ S44_E8C8A <- Vac.Batch(
 S44_E6C6B <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S44, VacAgeGroup = "S3", Age_Sus = c(0.4, 0.4),
     Vac_start = "2018-08-30", Effacy_I = 0.6, Effacy_Hosp = 0.7,
-    VacProp = 0.6, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.6, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 #-----------------------------------------------------------
@@ -688,8 +689,8 @@ S44_E6C6B <- Vac.Batch(
 S44_E7C6B <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S44, VacAgeGroup = "S3", Age_Sus = c(0.4, 0.4),
     Vac_start = "2018-08-30", Effacy_I = 0.7, Effacy_Hosp = 0.8,
-    VacProp = 0.6, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.6, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 #-----------------------------------------------------------
@@ -698,8 +699,8 @@ S44_E7C6B <- Vac.Batch(
 S44_E8C6B <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S44, VacAgeGroup = "S3", Age_Sus = c(0.4, 0.4),
     Vac_start = "2018-08-30", Effacy_I = 0.8, Effacy_Hosp = 0.9,
-    VacProp = 0.6, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.6, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 
@@ -710,8 +711,8 @@ S44_E8C6B <- Vac.Batch(
 S44_E6C8B <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S44, VacAgeGroup = "S3", Age_Sus = c(0.4, 0.4),
     Vac_start = "2018-08-30", Effacy_I = 0.6, Effacy_Hosp = 0.7,
-    VacProp = 0.8, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.8, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 #-----------------------------------------------------------
@@ -720,8 +721,8 @@ S44_E6C8B <- Vac.Batch(
 S44_E7C8B <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S44, VacAgeGroup = "S3", Age_Sus = c(0.4, 0.4),
     Vac_start = "2018-08-30", Effacy_I = 0.7, Effacy_Hosp = 0.8,
-    VacProp = 0.8, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.8, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 #-----------------------------------------------------------
@@ -730,8 +731,8 @@ S44_E7C8B <- Vac.Batch(
 S44_E8C8B <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S44, VacAgeGroup = "S3", Age_Sus = c(0.4, 0.4),
     Vac_start = "2018-08-30", Effacy_I = 0.8, Effacy_Hosp = 0.9,
-    VacProp = 0.8, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.8, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 
@@ -743,8 +744,8 @@ S44_E8C8B <- Vac.Batch(
 S44_E6C6C <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S44, VacAgeGroup = "S4", Age_Sus = c(0.4, 0.4),
     Vac_start = "2018-08-30", Effacy_I = 0.6, Effacy_Hosp = 0.7,
-    VacProp = 0.6, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.6, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 #-----------------------------------------------------------
@@ -753,8 +754,8 @@ S44_E6C6C <- Vac.Batch(
 S44_E7C6C <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S44, VacAgeGroup = "S4", Age_Sus = c(0.4, 0.4),
     Vac_start = "2018-08-30", Effacy_I = 0.7, Effacy_Hosp = 0.8,
-    VacProp = 0.6, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.6, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 #-----------------------------------------------------------
@@ -763,8 +764,8 @@ S44_E7C6C <- Vac.Batch(
 S44_E8C6C <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S44, VacAgeGroup = "S4", Age_Sus = c(0.4, 0.4),
     Vac_start = "2018-08-30", Effacy_I = 0.8, Effacy_Hosp = 0.9,
-    VacProp = 0.6, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.6, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 
@@ -775,8 +776,8 @@ S44_E8C6C <- Vac.Batch(
 S44_E6C8C <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S44, VacAgeGroup = "S4", Age_Sus = c(0.4, 0.4),
     Vac_start = "2018-08-30", Effacy_I = 0.6, Effacy_Hosp = 0.7,
-    VacProp = 0.8, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.8, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 #-----------------------------------------------------------
@@ -785,8 +786,8 @@ S44_E6C8C <- Vac.Batch(
 S44_E7C8C <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S44, VacAgeGroup = "S4", Age_Sus = c(0.4, 0.4),
     Vac_start = "2018-08-30", Effacy_I = 0.7, Effacy_Hosp = 0.8,
-    VacProp = 0.8, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.8, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
 
 #-----------------------------------------------------------
@@ -795,6 +796,6 @@ S44_E7C8C <- Vac.Batch(
 S44_E8C8C <- Vac.Batch(
     MCMC_Result = PosterioriCheck_S44, VacAgeGroup = "S4", Age_Sus = c(0.4, 0.4),
     Vac_start = "2018-08-30", Effacy_I = 0.8, Effacy_Hosp = 0.9,
-    VacProp = 0.8, lag = FALSE, ModelType = "Inpatient",
-    Plot = TRUE, save = F
+    VacProp = 0.8, lag = FALSE,
+    Plot = TRUE, save = FALSE
 )
