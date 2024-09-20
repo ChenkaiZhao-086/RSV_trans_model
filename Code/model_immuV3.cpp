@@ -206,7 +206,7 @@ List ModelSimCpp_Immu(double times, NumericVector state, List parms)
 
             // V0
             yode[2 + i * 13] = (VacPopulation[0 + i * 3] - // state[1 + i * 13] * Effacy * VacProp[i] -
-                                state[2 + i * 13] * omega_vac -
+                                state[2 + i * 13] * omega_vac +
                                 ageing_rates[i - 1] * state[2 + (i - 1) * 13] -
                                 Deaths * state[2 + i * 13] / dying_pop);
 
@@ -232,7 +232,7 @@ List ModelSimCpp_Immu(double times, NumericVector state, List parms)
 
             // V1
             yode[6 + i * 13] = (VacPopulation[1 + i * 3] - // state[5 + i * 13] * Effacy * VacProp[i] -
-                                state[6 + i * 13] * omega_vac -
+                                state[6 + i * 13] * omega_vac +
                                 ageing_rates[i - 1] * state[6 + (i - 1) * 13] -
                                 Deaths * state[6 + i * 13] / dying_pop);
 
@@ -259,7 +259,7 @@ List ModelSimCpp_Immu(double times, NumericVector state, List parms)
 
             // V2
             yode[10 + i * 13] = (VacPopulation[2 + i * 3] - // state[9 + i * 13] * Effacy * VacProp[i] -
-                                 state[10 + i * 13] * omega_vac -
+                                 state[10 + i * 13] * omega_vac +
                                  ageing_rates[i - 1] * state[10 + (i - 1) * 13] -
                                  Deaths * state[10 + i * 13] / dying_pop);
 
