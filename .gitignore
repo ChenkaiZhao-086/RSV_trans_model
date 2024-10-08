@@ -2,7 +2,14 @@
 .xlsx
 /Analysis plan/
 /Model/
-
+/Output/
+Code/Archive/
+Code/BM_PA_Archive/
+Code/Useless/
+*.docx
+*.pdf
+*.ai
+*.json
 
 # History files
 .Rhistory
