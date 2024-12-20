@@ -13,13 +13,13 @@ Dat_All <- copy(Dat)[
   by = .(week)
 ][, ID := 1:.N][order(-summ)]
 
-Dat_All$AAP <- AAP(Dat_All, 0.75)
+Dat_All$AAP <- AAP(Dat_All, 0.65)
 Dat_All <- setorder(Dat_All, ID)
-sum(Dat_All$AAP) # 11.41071
+sum(Dat_All$AAP) # 8.726422
 
 
-GetFakeWavelength <- function(x, RealLength = 11.41071, threshold = 0.75) {
-  x <- max(0.1, min(100, x))
+GetFakeWavelength <- function(x, RealLength = 8.726422, threshold = 0.65) {
+  x <- max(3, min(25, x))
 
   FakeData <- data.table(week = 1:52, summ = dnorm(1:52, mean = 26, sd = x))
   FakeData <- FakeData[, ID := 1:.N][order(-summ)]
@@ -27,18 +27,24 @@ GetFakeWavelength <- function(x, RealLength = 11.41071, threshold = 0.75) {
   return(abs(RealLength - sum(FakeData$AAP)))
 }
 
+library(parallel)
 set.seed(889)
-optim(par = 4, fn = GetFakeWavelength, method = "SANN") # SANN is simulated annealing # "L-BFGS-B"
-# 4.952299
+result <- mclapply(1:1000, function(x) {
+  optim(
+    par = 4, fn = GetFakeWavelength, RealLength = 8.726422, threshold = 0.65,
+    method = "SANN" # SANN is simulated annealing # "L-BFGS-B"
+  )
+},
+mc.cores = 10
+)
 
-# CAUTION: This code takes a long time to run
-# set.seed(889)
-# result <- replicate(1000, optim(par = 4, fn = GetFakeWavelength, method = "SANN"))
-# save(result, file = "Output/OptimWaveLength.Rdata")
-# quantile(do.call(rbind, result[1, ]), prob = c(0.025, 0.5, 0.975))
-# 4.951590 4.951807 4.952020
+result_bind <- do.call(rbind, lapply(1:length(result), function(x) result[[x]]$par))
+result_bind <- result_bind[result_bind > 4.66]
+result_bind <- result_bind[result_bind < 4.67]
+quantile(result_bind, prob = c(0.025, 0.5, 0.975))
+# 4.077284 4.664989 4.669717
 
-# GetFakeWavelength(4.95181)
-#
 # plot(Dat_All$summ, type = "l")
-# plot(dnorm(1:52, mean = 27, sd = 5), type = "l")
+# plot(dnorm(1:52, mean = 27, sd = 3.951807), type = "l")
+# lines(1:52, dnorm(1:52, mean = 27, sd = 4.668714) * 10000, col = "red")
+plot(density(result_bind))

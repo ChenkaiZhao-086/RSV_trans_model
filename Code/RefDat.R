@@ -46,13 +46,13 @@ TempWeek <- expand.grid(
 
 RefDat_MA <- merge(TempWeek, Dat, all.x = TRUE) %>% as.data.table()
 
+RefDat_MA <- copy(Dat)
 RefDat_MA <- RefDat_MA[, week := sprintf("%02d", week)][, week := paste0(Year, "-W", week)]
 RefDat_MA <- RefDat_MA[order(age_group, week)]
+RefDat_MA <- RefDat_MA[, date := ISOweek::ISOweek2date(paste0(week, "-1"))]
+RefDat_MA <- RefDat_MA[date >= as.Date("2017-06-30") & date <= as.Date("2020-03-31")]
+RefDat_MA <- RefDat_MA[, date := NULL]
 RefDat_MA <- RefDat_MA[, summ := round(frollmean(summ, n = 3)), by = .(age_group)]
-
-## Filter the epidemic season Week 40-53 and Week 1-10 in RefDat_MA
-RefDat_MA <- RefDat_MA[grepl("^201[7-9]-W(0[1-9]|10|4[0-9]|5[0-3])$|^2020-W(0[1-9]|10|4[0-9]|5[0-3])$", week)]
-
 
 RealDat_plot <- copy(RefDat)
 ## Plot the number of cases by week and age group (2 age groups)
@@ -178,3 +178,64 @@ lapply(names(RefPeak_2age), \(name) {
 })
 
 RefPeak_2age <- do.call(rbind, RefPeak_2age)
+
+
+### Calculate the distribution of the real data
+#-----------------------------------------------------------
+# 1 groups, no time difference
+#-----------------------------------------------------------
+# RealDat_AgeDistribution <- copy(RefDat)[, Month := ISOweek::ISOweek2date(paste0(week, "-1"))]
+# RealDat_AgeDistribution <- RealDat_AgeDistribution[month(Month) %in% c(10, 11, 12, 1)][
+#   ,
+#   Month := paste0(year(Month), "-", month(Month))
+# ][,
+#   lapply(.SD, sum),
+#   .SDcol = 3, by = c("Month", "age_group")
+# ]
+# RealDat_AgeDistribution <- pivot_wider(RealDat_AgeDistribution,
+#   id_cols = Month,
+#   names_from = "age_group", values_from = "true_value"
+# )
+# RealDat_AgeDistribution[is.na(RealDat_AgeDistribution)] <- 0
+# RealDat_AgeDistribution <- as.data.table(RealDat_AgeDistribution)
+# RealDatDistribution <- RealDat_AgeDistribution[
+#   ,
+#   Mark := c(rep(1, 4), rep(2, 4), rep(3, 4))
+# ][,
+#   lapply(.SD, sum),
+#   .SDcol = -c("Month", "Mark"), by = Mark
+# ][, Mark := NULL]
+# 
+# setcolorder(RealDatDistribution, paste0("Reported_G", 1:11))
+
+
+#-----------------------------------------------------------
+# 2 groups, with time difference: 10-11, 12-1
+#-----------------------------------------------------------
+RealDat_AgeDistribution <- copy(RefDat)[, Month := ISOweek::ISOweek2date(paste0(week, "-1"))]
+RealDat_AgeDistribution <- RealDat_AgeDistribution[month(Month) %in% c(10, 11, 12, 1)][
+  ,
+  TimeLabel := fcase(month(Month) %in% 10:11, "Before", month(Month) %in% 12:1, "After")
+][
+  ,
+  Month := paste0(year(Month), "-", month(Month))
+][,
+  lapply(.SD, sum),
+  .SDcol = 3, by = c("Month", "age_group", "TimeLabel")
+]
+
+RealDat_AgeDistribution <- pivot_wider(RealDat_AgeDistribution,
+  id_cols = c(Month, TimeLabel), names_from = age_group,
+  values_from = true_value
+)
+
+RealDat_AgeDistribution <- as.data.table(RealDat_AgeDistribution)
+RealDatDistribution <- RealDat_AgeDistribution[
+  ,
+  Mark := c(rep(1, 4), rep(2, 4), rep(3, 4))
+][,
+  lapply(.SD, sum),
+  .SDcol = -c("Month", "Mark", "TimeLabel"), by = c("Mark", "TimeLabel")
+][, Mark := NULL][, TimeLabel := NULL]
+
+setcolorder(RealDatDistribution, paste0("Reported_G", 1:11))

@@ -338,7 +338,7 @@ Parameter.Create <- function(
       1 / (30 * 3), # 0-2 months
       1 / (30 * 3), # 3-5 months
       1 / (30 * 6), # 6-11 months
-      1 / (365 * 2), # 1-2 years
+      1 / (365 * 1), # 1-2 years
       1 / (365 * 3), # 2-4 years
       1 / (365 * 15), # 5-19 years
       1 / (365 * 40), # 20-59 years
@@ -675,8 +675,8 @@ Plot.Model <- function(dat, RealDat = RealDat_plot) {
           "Reported_G10", "Reported_G11"
         ),
         labels = c(
-          "0-2m", "3-5m", "6-11m", "12-23m", "2-4y", "5-19y",
-          "20-59y", "60-64y", "65-69y", "70-74y", "75+y"
+          "0-3 M", "3-6 M", "6-12 M", "1-2 Y", "2-5 Y", "5-20 Y",
+          "20-60 Y", "60-65 Y", "65-70 Y", "70-75 Y", "75+ Y"
         )
       ),
       week = ISOweek::ISOweek2date(paste0(week, "-1"))
@@ -834,22 +834,22 @@ Model.RunSim.LLH <- function(
 MCMC.Proposal <- function(Parm) {
   ParmNew_base <- rtruncnorm(1, a = 0.3, b = 1, mean = Parm[1], sd = 0.0009) # 0.02, Parm[1] / 20 0.005 # beta_base
 
-  ParmNew_seasonal <- rtruncnorm(1, a = 2, b = 10, mean = Parm[2], sd = 0.09) # 0.2 Parm[2] / 10  0.005 # beta_seasonal
+  ParmNew_seasonal <- rtruncnorm(1, a = 2, b = 15, mean = Parm[2], sd = 0.09) # 0.2 Parm[2] / 10  0.005 # beta_seasonal
 
-  ParmNew2 <- rtruncnorm(1, a = -45, b = 20, mean = Parm[3], sd = 0) # 0.3) # Parm[3] + runif(1, -1.8, 1.8) # phi
+  ParmNew2 <- rtruncnorm(1, a = -45, b = -25, mean = Parm[3], sd = 0) # 0.3) # Parm[3] + runif(1, -1.8, 1.8) # phi
   # a = -40, b = -10,
   # a = -182, b = 183
   # a = -30, b = 20
 
-  ParmNew3 <- Parm[4] # seasonal_wavelength
+  ParmNew3 <- runif(1, 4.077284, 4.669717) * 7 # # Parm[4] # seasonal_wavelength
   # ParmNew3 <- rtruncnorm(1, a = 28, b = 35, mean = Parm[4], sd = 0.03 * step) # 0.0004 seasonal_wavelength
 
   # ParmNew4 <- rtruncnorm(11, a = 0, b = 0.05, mean = Parm[c(5:15)], sd = Parm[c(5:15)] / 12) # Hosp_rate
-  ParmNew4.0 <- rtruncnorm(1, a = 0.05, b = 0.25, mean = Parm[c(5)], sd = 0.01) # Parm[c(5)] / 20 Hosp_rate 0.0005
+  ParmNew4.0 <- rtruncnorm(1, a = 0.05, b = 0.3, mean = Parm[c(5)], sd = 0.01) # Parm[c(5)] / 20 Hosp_rate 0.0005
   # b = 0.15
-  ParmNew4.1 <- rtruncnorm(1, a = 0.0001, b = 0.1, mean = Parm[c(6)], sd = 0.005) # Parm[c(6:10)] / 20 Hosp_rate 0.0005
+  ParmNew4.1 <- rtruncnorm(1, a = 0.0001, b = 0.2, mean = Parm[c(6)], sd = 0.005) # Parm[c(6:10)] / 20 Hosp_rate 0.0005
   ParmNew4.2 <- rtruncnorm(1, a = 0.0001, b = 0.1, mean = Parm[c(7)], sd = 0.002) # Parm[c(6:10)] / 20 Hosp_rate 0.0005
-  ParmNew4.3 <- rtruncnorm(1, a = 0.0001, b = 0.1, mean = Parm[c(8)], sd = 0.0005) # Parm[c(6:10)] / 20 Hosp_rate 0.0005
+  ParmNew4.3 <- rtruncnorm(1, a = 0.0001, b = 0.2, mean = Parm[c(8)], sd = 0.0005) # Parm[c(6:10)] / 20 Hosp_rate 0.0005
   ParmNew4.4 <- rtruncnorm(1, a = 0.0001, b = 0.01, mean = Parm[c(9)], sd = 0.0001) # Parm[c(6:10)] / 20 Hosp_rate 0.0005
   ParmNew4.5 <- rtruncnorm(1, a = 0.0001, b = 0.01, mean = Parm[c(10)], sd = 0.00002) # Parm[c(6:10)] / 20 Hosp_rate 0.0005
 
@@ -904,7 +904,8 @@ MCMC.MH <- function(
     proposal_log_likelihood <- Model.RunSim.LLH(
       Parm = Parameter.Create(
         beta_base = proposal[1], beta_seasonal = proposal[2], phi = proposal[3],
-        seasonal_wavelength = proposal[4], Hosp_rate = c(proposal[5:15]), Age_Sus = Sus_reduce
+        seasonal_wavelength = proposal[4],
+        Hosp_rate = c(proposal[5:15]), Age_Sus = Sus_reduce
       ), TargetDat = TargetDat, lag = lag, model = model, AgeDistribution, AgeDistributionDat
     )
 
@@ -964,22 +965,61 @@ MCMC.Batch <- function(seed = 380, Prior, n_iterations, TargetDat = RefDat, lag 
   return(MCMC_Result)
 }
 
-MCMC.TracePlot <- function(dat) {
-  colnames(dat) <- c(
-    "beta_base", "beta_seasonal", "phi", "seasonal_wavelength",
-    "Hosp_rateM0_2", "Hosp_rateM3_5", "Hosp_rateM6_11", "Hosp_rateY1_2", "Hosp_rateY2_4", "Hosp_rateY5_19",
-    "Hosp_rateY20_59", "Hosp_rateY60_64", "Hosp_rateY65_69", "Hosp_rateY70_74", "Hosp_rateY75_" # , "Age_Sus"
-  )
-  dat <- dat %>%
-    as.data.frame() %>%
-    mutate(iter = 1:n()) %>%
-    pivot_longer(cols = -iter, names_to = "Parameter", values_to = "Value") %>%
-    mutate(Parameter = factor(Parameter, levels = colnames(dat))) %>%
-    ggplot() +
-    geom_line(aes(x = iter, y = Value, group = Parameter)) +
-    facet_wrap(~Parameter, scales = "free_y") +
-    theme_minimal()
-  return(dat)
+MCMC.TracePlot <- function(dat, FilePath) {
+  Chain <- lapply(seq_along(dat), \(i){
+    Chain <- dat[[i]][, -ncol(dat[[i]])]
+    Chain <- Chain[, -c(3, 4)]
+
+    Chain <- window(Chain, start = 5000 + 1, thin = 10) %>% as.data.frame()
+    colnames(Chain) <- c(
+      "beta_base", "beta_seasonal",
+      "Hosp_rateM0_3", "Hosp_rateM3_6", "Hosp_rateM6_12", "Hosp_rateY1_2", "Hosp_rateY2_5", "Hosp_rateY5_20",
+      "Hosp_rateY20_60", "Hosp_rateY60_65", "Hosp_rateY65_70", "Hosp_rateY70_75", "Hosp_rateY75_"
+    )
+    Chain$iteration <- 1:nrow(Chain)
+    Chain$chain <- paste0("Chain", i)
+    return(Chain)
+  })
+
+  FigDat <- do.call(rbind, Chain) %>%
+    pivot_longer(cols = 1:13, names_to = "parameter", values_to = "value") %>%
+    mutate(parameter = factor(parameter, levels = c(
+      "beta_base", "beta_seasonal",
+      "Hosp_rateM0_3", "Hosp_rateM3_6", "Hosp_rateM6_12", "Hosp_rateY1_2", "Hosp_rateY2_5", "Hosp_rateY5_20",
+      "Hosp_rateY20_60", "Hosp_rateY60_65", "Hosp_rateY65_70", "Hosp_rateY70_75", "Hosp_rateY75_"
+    )))
+
+  TracePlot <- ggplot(FigDat, aes(x = iteration, y = value, color = chain)) +
+    geom_line(alpha = 0.9) +
+    scale_color_manual(values = c("#001106", "#d40f0f", "#2ecf0e")) +
+    facet_wrap(~parameter, scales = "free_y", ncol = 4) +
+    theme_minimal() +
+    labs(x = NULL, y = NULL) +
+    theme(
+      legend.position = "none",
+      axis.text = element_text(size = 14, face = "bold"),
+      axis.title.y = element_text(margin = margin(r = 10)),
+      axis.text.x = element_text(margin = margin(b = 5)),
+      strip.text = element_text(size = 16, face = "bold"),
+      strip.background = element_blank(), strip.placement = "outside"
+    )
+  ggsave(TracePlot, file = paste0(FilePath, "TracePlot.png"), width = 22, height = 14, dpi = 300, bg = "white")
+
+
+  DensityPlot <- ggplot(FigDat, aes(x = value, fill = chain)) +
+    geom_density(alpha = 0.5) +
+    facet_wrap(~parameter, scales = "free", ncol = 4) +
+    theme_minimal() +
+    labs(x = NULL, y = NULL) +
+    theme(
+      legend.position = "none",
+      axis.text = element_text(size = 14, face = "bold"),
+      axis.title.y = element_text(margin = margin(r = 10)),
+      axis.text.x = element_text(margin = margin(b = 5)),
+      strip.text = element_text(size = 16, face = "bold"),
+      strip.background = element_blank(), strip.placement = "outside"
+    )
+  ggsave(DensityPlot, file = paste0(FilePath, "DensityPlot.pdf"), width = 22, height = 14)
 }
 
 
@@ -1002,11 +1042,11 @@ MCMC.PostProcess <- function(dat, burn_in = 5000, thin = 10, n_sample = 500) {
 
   Chain <- mcmc.list(Chain)
 
-  par(mfrow = c(4, 4))
-  Traceplot <- traceplot(Chain)
+  # par(mfrow = c(4, 4))
+  # Traceplot <- traceplot(Chain)
 
-  par(mfrow = c(4, 4))
-  Densplot <- densplot(Chain)
+  # par(mfrow = c(4, 4))
+  # Densplot <- densplot(Chain)
 
   # Geltest <- try(gelman.diag(Chain))
   Heitest <- heidel.diag(Chain)
@@ -1032,8 +1072,8 @@ MCMC.PostProcess <- function(dat, burn_in = 5000, thin = 10, n_sample = 500) {
   )
 
   return(list(
-    Traceplot = Traceplot,
-    Densplot = Densplot,
+    # Traceplot = Traceplot,
+    # Densplot = Densplot,
     # Geltest = Geltest,
     Heitest = Heitest,
     SampleChain = SampleChain,
@@ -1142,8 +1182,8 @@ MCMC.PosteriorPlot.V2 <- function(
       "Reported_G10", "Reported_G11", "All_age"
     ),
     labels = c(
-      "0-2m", "3-5m", "6-11m", "12-23m", "2-4y", "5-19y",
-      "20-59y", "60-64y", "65-69y", "70-74y", "75+y", "All age"
+      "0-3 M", "3-6 M", "6-12 M", "1-2 Y", "2-5 Y", "5-20 Y",
+      "20-60 Y", "60-65 Y", "65-70 Y", "70-75 Y", "75+ Y"
     )
   )]
 
@@ -1163,8 +1203,8 @@ MCMC.PosteriorPlot.V2 <- function(
       "Reported_G10", "Reported_G11", "All_age"
     ),
     labels = c(
-      "0-2m", "3-5m", "6-11m", "12-23m", "2-4y", "5-19y",
-      "20-59y", "60-64y", "65-69y", "70-74y", "75+y", "All age"
+      "0-3 M", "3-6 M", "6-12 M", "1-2 Y", "2-5 Y", "5-20 Y",
+      "20-60 Y", "60-65 Y", "65-70 Y", "70-75 Y", "75+ Y"
     )
   )] %>% as.data.frame()
 
@@ -1187,8 +1227,8 @@ MCMC.PosteriorPlot.V2 <- function(
         "Reported_G10", "Reported_G11", "All_age"
       ),
       labels = c(
-        "0-2m", "3-5m", "6-11m", "12-23m", "2-4y", "5-19y",
-        "20-59y", "60-64y", "65-69y", "70-74y", "75+y", "All age"
+        "0-3 M", "3-6 M", "6-12 M", "1-2 Y", "2-5 Y", "5-20 Y",
+        "20-60 Y", "60-65 Y", "65-70 Y", "70-75 Y", "75+ Y"
       )
     )][, ":="(week = ISOweek::ISOweek2date(paste0(week, "-1")),
       SimNum = n_Sim)]
@@ -1235,8 +1275,8 @@ MCMC.PosteriorPlot.V2_Appendix <- function(
       "Reported_G10", "Reported_G11"
     ),
     labels = c(
-      "0-2m", "3-5m", "6-11m", "12-23m", "2-4y", "5-19y",
-      "20-59y", "60-64y", "65-69y", "70-74y", "75+y"
+      "0-3 M", "3-6 M", "6-12 M", "1-2 Y", "2-5 Y", "5-20 Y",
+      "20-60 Y", "60-65 Y", "65-70 Y", "70-75 Y", "75+ Y"
     )
   )]
 
@@ -1250,8 +1290,8 @@ MCMC.PosteriorPlot.V2_Appendix <- function(
       "Reported_G10", "Reported_G11"
     ),
     labels = c(
-      "0-2m", "3-5m", "6-11m", "12-23m", "2-4y", "5-19y",
-      "20-59y", "60-64y", "65-69y", "70-74y", "75+y"
+      "0-3 M", "3-6 M", "6-12 M", "1-2 Y", "2-5 Y", "5-20 Y",
+      "20-60 Y", "60-65 Y", "65-70 Y", "70-75 Y", "75+ Y"
     )
   )] %>% as.data.frame()
 
@@ -1268,8 +1308,8 @@ MCMC.PosteriorPlot.V2_Appendix <- function(
         "Reported_G10", "Reported_G11"
       ),
       labels = c(
-        "0-2m", "3-5m", "6-11m", "12-23m", "2-4y", "5-19y",
-        "20-59y", "60-64y", "65-69y", "70-74y", "75+y"
+        "0-3 M", "3-6 M", "6-12 M", "1-2 Y", "2-5 Y", "5-20 Y",
+        "20-60 Y", "60-65 Y", "65-70 Y", "70-75 Y", "75+ Y"
       )
     )][, ":="(week = ISOweek::ISOweek2date(paste0(week, "-1")),
       SimNum = n_Sim)]
@@ -1286,18 +1326,19 @@ MCMC.PosteriorPlot.V2_Appendix <- function(
     geom_line(data = MedianDat, aes(x = week, y = Cases, group = age_group), colour = "#c9283a", linewidth = 1) +
     geom_vline(xintercept = as.Date(c("2018-01-01", "2019-01-01", "2020-01-01")), linetype = "dashed", alpha = 0.2) +
     labs(x = "Date", y = "Number of cases") +
-    theme_minimal() +
+    theme_bw() +
     scale_x_date(date_labels = "%Y") +
     facet_wrap(~age_group) +
     theme(
       axis.text.x = element_text(size = 18, hjust = 1),
       axis.text.y = element_text(size = 18),
       axis.title = element_text(size = 24),
-      strip.text = element_text(size = 24)
+      strip.text = element_text(size = 24),
+      strip.background = element_rect(fill = "grey95")
     )
 
   if (save == TRUE) {
-    ggsave(Fig, file = paste0(path, ".pdf"), width = width, height = height)
+    ggsave(Fig, file = paste0(path, ".png"), width = width, height = height, dpi = 300, bg = "white")
   }
 
   return(Fig)
@@ -1600,6 +1641,7 @@ Model.GetI.Immu <- function(dat, Hosp_rate, Effacy_I, Effacy_Hosp,
                             Vac_start, VacAgeGroup, lag = FALSE) {
   NewDat <- dat %>% as.data.table()
   NewDat <- NewDat[, time := as.Date(time)]
+  NewDat <- NewDat[time >= as.Date("2019-06-27") & time <= as.Date("2020-06-27")]
   ReportName <- grep("Reported_G", names(NewDat), value = TRUE) # grep("Reported", names(NewDat), value = TRUE)
   ReportName_IV <- grep("Reported_IV", names(NewDat), value = TRUE)
 
@@ -1633,8 +1675,6 @@ Model.GetI.Immu <- function(dat, Hosp_rate, Effacy_I, Effacy_Hosp,
         Reported_G9 = shift(Reported_G9, 7, type = "lag", fill = 0),
         Reported_G10 = shift(Reported_G10, 7, type = "lag", fill = 0),
         Reported_G11 = shift(Reported_G11, 7, type = "lag", fill = 0))
-    ][time >= as.Date("2017-06-27") & time <= as.Date("2020-06-27")][, (ExcludeCol) := lapply(.SD, sum),
-      by = .(week), .SDcols = ExcludeCol
     ]
     RealIV <- RealIV[, week := substr(ISOweek::date2ISOweek(time), 1, 8)][
       ,
@@ -1649,33 +1689,38 @@ Model.GetI.Immu <- function(dat, Hosp_rate, Effacy_I, Effacy_Hosp,
         Reported_IV9 = shift(Reported_IV9, 7, type = "lag", fill = 0),
         Reported_IV10 = shift(Reported_IV10, 7, type = "lag", fill = 0),
         Reported_IV11 = shift(Reported_IV11, 7, type = "lag", fill = 0))
-    ][time >= as.Date("2017-06-27") & time <= as.Date("2020-06-27")][, (ExcludeCol_IV) := lapply(.SD, sum),
+    ][, (ExcludeCol_IV) := lapply(.SD, sum),
       by = .(week), .SDcols = ExcludeCol_IV
     ]
   } else {
-    RealI <- RealI[, week := substr(ISOweek::date2ISOweek(time), 1, 8)][time >= as.Date("2017-06-27") &
-      time <= as.Date("2020-06-27")][, (ExcludeCol) := lapply(.SD, sum),
-      by = .(week), .SDcols = ExcludeCol
-    ]
-    RealIV <- RealIV[, week := substr(ISOweek::date2ISOweek(time), 1, 8)][time >= as.Date("2017-06-27") &
-      time <= as.Date("2020-06-27")][, (ExcludeCol_IV) := lapply(.SD, sum),
+    RealI <- RealI[, week := substr(ISOweek::date2ISOweek(time), 1, 8)]
+    RealIV <- RealIV[, week := substr(ISOweek::date2ISOweek(time), 1, 8)][, (ExcludeCol_IV) := lapply(.SD, sum),
       by = .(week), .SDcols = ExcludeCol_IV
     ]
   }
 
   # Extract the infection cases (No hospitalization)
-  Real_Infection <- copy(RealI)
+  Real_Infection <- copy(RealI)[, (ExcludeCol) := lapply(.SD, sum),
+    by = .(week), .SDcols = ExcludeCol
+  ]
 
   # Calculate cases for each group
-  Effacy_H2I <- (1 - Effacy_Hosp) / (1 - Effacy_I)
-  Effacy_H2I <- Effacy_H2I * VacAgeGroup
-  Effacy_H2I[Effacy_H2I == 0] <- 1
+  Effacy_I2H <- (1 - Effacy_Hosp) / (1 - Effacy_I)
+  Effacy_I2H <- Effacy_I2H * VacAgeGroup
+  Effacy_I2H[Effacy_I2H == 0] <- 1
 
   BeforeVac <- RealI[time < as.Date(Vac_start)]
-  BeforeVac[, (2:(ncol(BeforeVac) - 1)) := lapply(2:(ncol(BeforeVac) - 1), function(i) BeforeVac[[i]] * Hosp_rate[i - 1])]
+  BeforeVac[, (2:(ncol(BeforeVac) - 1)) := lapply(
+    2:(ncol(BeforeVac) - 1),
+    function(i) BeforeVac[[i]] * Hosp_rate[i - 1]
+  )]
   AfterVac <- RealI[time >= as.Date(Vac_start)]
-  AfterVac[, (2:(ncol(AfterVac) - 1)) := lapply(2:(ncol(AfterVac) - 1), function(i) AfterVac[[i]] * Hosp_rate[i - 1] * Effacy_H2I[i - 1])]
+  AfterVac[, (2:(ncol(AfterVac) - 1)) := lapply(
+    2:(ncol(AfterVac) - 1),
+    function(i) AfterVac[[i]] * Hosp_rate[i - 1] * Effacy_I2H[i - 1]
+  )]
   RealI <- rbind(BeforeVac, AfterVac)
+  RealI <- RealI[, (ExcludeCol) := lapply(.SD, sum), by = .(week), .SDcols = ExcludeCol]
 
   # RealI <- RealI[, (2:(ncol(RealI) - 1)) := lapply(2:(ncol(RealI) - 1), function(i) RealI[[i]] * Hosp_rate[i - 1])]
 
@@ -1696,7 +1741,7 @@ Model.GetI.Immu <- function(dat, Hosp_rate, Effacy_I, Effacy_Hosp,
 
 #' @description Calculate the infection rate per 1000 people
 Calu.InfeRate <- function(Dat) {
-  CalI_case <- copy(Dat[["Real_Infection"]])[time >= "2018-06-29" & time < "2019-06-29", ] # filter one year of infection data
+  CalI_case <- copy(Dat[["Real_Infection"]])[time >= "2019-06-20" & time < "2020-06-29", ] # filter one year of infection data
 
   Infe_Summary <- CalI_case[, (3:13) := lapply(.SD, sum),
     .SDcols = c(3:13)
@@ -1709,7 +1754,7 @@ Calu.InfeRate <- function(Dat) {
 }
 
 #' @description Calculate the proportion of hospitalization to infection
-Calu.PropH2I <- function(ModelParm, lag, Age_Sus, Vac_start, Effacy_I = 0, Effacy_Hosp = 0, VacProp, model = "SIRVV") {
+Calu.PropI2H <- function(ModelParm, lag, Age_Sus, Vac_start, Effacy_I = 0, Effacy_Hosp = 0, VacProp, model = "SIRVV") {
   InfeCase <- Model.RunSim.Immu(Parm = Parameter.Create(
     beta_base = ModelParm[1],
     beta_seasonal = ModelParm[2],
@@ -1725,8 +1770,8 @@ Calu.PropH2I <- function(ModelParm, lag, Age_Sus, Vac_start, Effacy_I = 0, Effac
 
   InfeRate <- Calu.InfeRate(InfeCase)
 
-  Prop_H2I <- Scot_HospRate / InfeRate
-  return(as.numeric(Prop_H2I))
+  Prop_I2H <- Scot_HospRate / InfeRate
+  return(as.numeric(Prop_I2H))
 }
 
 #' @title Calculate the vaccination protection
@@ -1739,10 +1784,40 @@ Calu.PropH2I <- function(ModelParm, lag, Age_Sus, Vac_start, Effacy_I = 0, Effac
 Vac.Protection <- function(
     ModelParm, VacAgeGroup, lag, Age_Sus, Vac_start, Effacy_I, Effacy_Hosp, VacProp, model = "SIRVV",
     Plot = FALSE, save = FALSE, path, width, height) {
-  Prop_H2I <- Calu.PropH2I(ModelParm, lag, Age_Sus, Vac_start, Effacy_I = 0, Effacy_Hosp = 0, VacProp, model)
+  ### Calculate the proportion of hospitalization to infection
+  Prop_I2H <- Calu.PropI2H(ModelParm, lag, Age_Sus, Vac_start, Effacy_I = 0, Effacy_Hosp = 0, VacProp, model)
 
+  ### Calculate the incidence rate after vaccination
+  InfeCase <- Model.RunSim.Immu(Parm = Parameter.Create(
+    beta_base = ModelParm[1],
+    beta_seasonal = ModelParm[2],
+    phi = ModelParm[3],
+    seasonal_wavelength = ModelParm[4],
+    Hosp_rate = rep(1, 11),
+    Age_Sus = Age_Sus,
+    Vac_start = Vac_start,
+    Effacy_I = Effacy_I,
+    Effacy_Hosp = Effacy_Hosp,
+    VacProp = VacProp
+  ), lag = lag, model = model)
+
+  I_case <- copy(InfeCase[["Real_Infection"]])
+  IV_case <- copy(InfeCase[["RealIV"]])
+  CalI_case <- I_case[, 3:13] + IV_case[, 3:13]
+
+  Infe_Summary <- CalI_case[, (1:11) := lapply(.SD, sum),
+    .SDcols = c(1:11)
+  ][, (1:11) := lapply(.SD, round, 0),
+    .SDcols = 1:11
+  ]
+  Infe_Summary <- Infe_Summary[1, ]
+
+  InfeRate <- as.numeric(Infe_Summary) / Scot_Pop
+
+
+  ### Calculate the vaccination protection
   ImmuSim <- Vac.Protection.Simulation(
-    ModelParm = ModelParm, VacAgeGroup = VacAgeGroup, Prop_H2I = Prop_H2I, Effacy_I = Effacy_I, Effacy_Hosp = Effacy_Hosp,
+    ModelParm = ModelParm, VacAgeGroup = VacAgeGroup, Prop_I2H = Prop_I2H, Effacy_I = Effacy_I, Effacy_Hosp = Effacy_Hosp,
     lag = lag, Age_Sus = Age_Sus, Vac_start = Vac_start, VacProp = VacProp, model = model
   )
 
@@ -1752,7 +1827,7 @@ Vac.Protection <- function(
   ImmuInfe_summ_2age <- ImmuSim[["InfectionResult_2age"]]
 
   BaseSim <- Vac.Protection.Simulation(
-    ModelParm = ModelParm, VacAgeGroup = VacAgeGroup, Prop_H2I = Prop_H2I, Effacy_I = 0, Effacy_Hosp = 0,
+    ModelParm = ModelParm, VacAgeGroup = VacAgeGroup, Prop_I2H = Prop_I2H, Effacy_I = 0, Effacy_Hosp = 0,
     lag = lag, Age_Sus = Age_Sus, Vac_start = Vac_start, VacProp = VacProp, model = model
   )
 
@@ -1765,9 +1840,11 @@ Vac.Protection <- function(
   # [Hospitalization]
   NetProtectHosp <- copy(BaseHosp_summ)[, cases := cases - ImmuHosp_summ$cases]
   NetProtectHosp_2age <- copy(BaseHosp_summ_2age)[, cases := cases - ImmuHosp_summ_2age$cases]
+  NetProtectHosp_all <- sum(NetProtectHosp_2age[, 2])
   # [Infection]
   NetProtectInfe <- copy(BaseInfe_summ)[, cases := cases - ImmuInfe_summ$cases]
   NetProtectInfe_2age <- copy(BaseInfe_summ_2age)[, cases := cases - ImmuInfe_summ_2age$cases]
+  NetProtectInfe_all <- sum(NetProtectInfe_2age[, 2])
 
   ### Calculate the vaccination protection
   # [Hospitalization]
@@ -1823,9 +1900,14 @@ Vac.Protection <- function(
   RawSimuData <- copy(ImmuSim[[4]])
   TotalVacc <- sum(RawSimuData[time == as.Date(Vac_start) + 1, ..FindV])
 
-  NetProtectHospAll <- copy(ImmuSim[["AvertHospInfe"]])[, (3:13) := lapply(.SD, sum), .SDcols = c(3:13)] 
-  NetProtectHospAll <- sum(NetProtectHospAll[1, 3:13]) + sum(NetProtectHosp_2age$cases) # Total averted hospitalization (None vacc + Cases in IV)
-  AvertHospPerVac <- NetProtectHospAll / TotalVacc
+  # NetProtectHospAll <- copy(ImmuSim[["AvertHospInfe"]])[, (3:13) := lapply(.SD, sum), .SDcols = c(3:13)]
+  NetProtectHospAll <- sum(NetProtectHosp_2age$cases) # + sum(NetProtectHospAll[1, 3:13]) # Total averted hospitalization (None vacc + Cases in IV)
+  AvertHospPerVac <- (TotalVacc / VacProp) / NetProtectHospAll # Real vaccination number / Total averted hospitalization
+
+  NetProtectInfeAll <- sum(NetProtectInfe_2age$cases)
+  NNV_Infe <- (TotalVacc / VacProp) / NetProtectInfeAll
+  VacNumber <- TotalVacc / VacProp
+
 
   if (Plot == TRUE) {
     Fig <- Vac.Plot(
@@ -1833,16 +1915,21 @@ Vac.Protection <- function(
       VacProp, save, path, width, height
     )
     return(list(
-      Prop_H2I = Prop_H2I,
+      Prop_I2H = Prop_I2H,
+      InfeRate = InfeRate,
       NetProtectHosp = NetProtectHosp,
       NetProtectHosp_2age = NetProtectHosp_2age,
+      NetProtectHosp_all = NetProtectHosp_all,
       VacProtectionHosp = VacProtectionHosp,
       DirectProtectHosp = DirectProtectHosp,
       InDirectProtectHosp = InDirectProtectHosp,
       TotalProtectHosp = TotalProtectHosp,
       AvertHospPerVac = AvertHospPerVac,
+      NNV_Infe = NNV_Infe,
+      VacNumber = VacNumber,
       NetProtectInfe = NetProtectInfe,
       NetProtectInfe_2age = NetProtectInfe_2age,
+      NetProtectInfe_all = NetProtectInfe_all,
       VacProtectionInfe = VacProtectionInfe,
       DirectProtectInfe = DirectProtectInfe,
       InDirectProtectInfe = InDirectProtectInfe,
@@ -1851,16 +1938,23 @@ Vac.Protection <- function(
     ))
   } else {
     return(list(
-      Prop_H2I = Prop_H2I,
+      FigDat_Immu = copy(ImmuSim[[3]]),
+      FigDat_Base = copy(BaseSim[[3]]),
+      Prop_I2H = Prop_I2H,
+      InfeRate = InfeRate,
       NetProtectHosp = NetProtectHosp,
       NetProtectHosp_2age = NetProtectHosp_2age,
+      NetProtectHosp_all = NetProtectHosp_all,
       VacProtectionHosp = VacProtectionHosp,
       DirectProtectHosp = DirectProtectHosp,
       InDirectProtectHosp = InDirectProtectHosp,
       TotalProtectHosp = TotalProtectHosp,
       AvertHospPerVac = AvertHospPerVac,
+      NNV_Infe = NNV_Infe,
+      VacNumber = VacNumber,
       NetProtectInfe = NetProtectInfe,
       NetProtectInfe_2age = NetProtectInfe_2age,
+      NetProtectInfe_all = NetProtectInfe_all,
       VacProtectionInfe = VacProtectionInfe,
       DirectProtectInfe = DirectProtectInfe,
       InDirectProtectInfe = InDirectProtectInfe,
@@ -1875,14 +1969,14 @@ Vac.Protection <- function(
 #' @return SummCase: calculate the summary of new confirmed cases for 11 age groups by week between 1-10 and 40-53
 #' @return SummCase_2age: calculate the summary of new confirmed cases for 2 age groups by week between 1-10 and 40-53
 #' @return SimResult[[2]]: the raw simulation result for the plot
-Vac.Protection.Simulation <- function(ModelParm, Prop_H2I, VacAgeGroup, lag, Age_Sus,
+Vac.Protection.Simulation <- function(ModelParm, Prop_I2H, VacAgeGroup, lag, Age_Sus,
                                       Vac_start, Effacy_I, Effacy_Hosp, VacProp, model = "SIRVV") {
   SimResult <- Model.RunSim.Immu(Parm = Parameter.Create(
     beta_base = ModelParm[1],
     beta_seasonal = ModelParm[2],
     phi = ModelParm[3],
     seasonal_wavelength = ModelParm[4],
-    Hosp_rate = Prop_H2I,
+    Hosp_rate = Prop_I2H,
     Age_Sus = Age_Sus,
     Vac_start = Vac_start,
     Effacy_I = Effacy_I,
@@ -1893,14 +1987,19 @@ Vac.Protection.Simulation <- function(ModelParm, Prop_H2I, VacAgeGroup, lag, Age
 
   ### Determine the age group for the 2 age groups
   ColumnSelect <- switch(VacAgeGroup,
-    "S1" = c("0-2m"),
-    "S2" = c("0-2m", "3-5m", "6-11m"),
-    "S3" = c("0-2m", "3-5m", "6-11m", "12-23m"),
-    "S4" = c("0-2m", "3-5m", "6-11m", "12-23m", "2-4y")
+    "S1" = c("0-3 M", "3-6 M"),
+    "S2" = c("0-3 M", "3-6 M", "6-12 M"),
+    "S3" = c("0-3 M", "3-6 M", "6-12 M", "1-2 Y"),
+    "S4" = c("0-3 M", "3-6 M", "6-12 M", "1-2 Y", "2-5 Y")
   )
+  ### Calculate the summary of new confirmed cases (Infected [Real_Infection] + Infected but not hospitalized [RealIV])
+  AllInfection <- cbind(
+    copy(SimResult[["Real_Infection"]])[, 1:2], # Date
+    copy(SimResult[["Real_Infection"]])[, 3:13] + copy(SimResult[["RealIV"]][, 3:13])
+  ) # Cases
 
   HospResult <- Vac.Protection.Simulation.Calculate(SimResult[["RealI"]], ColumnSelect)
-  InfectionResult <- Vac.Protection.Simulation.Calculate(SimResult[["Real_Infection"]], ColumnSelect)
+  InfectionResult <- Vac.Protection.Simulation.Calculate(AllInfection, ColumnSelect)
 
   NewConfirmIV <- copy(SimResult[["RealIV"]])
 
@@ -1935,8 +2034,8 @@ Vac.Protection.Simulation.Calculate <- function(Dat, ColumnSelect) {
         "Reported_G10", "Reported_G11"
       ),
       labels = c(
-        "0-2m", "3-5m", "6-11m", "12-23m", "2-4y", "5-19y",
-        "20-59y", "60-64y", "65-69y", "70-74y", "75+y"
+        "0-3 M", "3-6 M", "6-12 M", "1-2 Y", "2-5 Y", "5-20 Y",
+        "20-60 Y", "60-65 Y", "65-70 Y", "70-75 Y", "75+ Y"
       )
     ))
 
@@ -1960,9 +2059,17 @@ Vac.Protection.Simulation.Calculate <- function(Dat, ColumnSelect) {
 
 #' @title Calculate the vaccination protection posterior
 Vac.Posterior <- function(VacList) {
-  ### Prop_H2I CI
-  Prop_H2I_CI <- do.call(rbind, lapply(VacList, \(x) x[["Prop_H2I"]]))
-  Prop_H2I_CI <- Prop_H2I_CI %>%
+  ### Prop_I2H CI
+  Prop_I2H_CI <- do.call(rbind, lapply(VacList, \(x) x[["Prop_I2H"]]))
+  Prop_I2H_CI <- Prop_I2H_CI %>%
+    apply(., 2, \(x){
+      quantile(x, c(0.025, 0.5, 0.975))
+    }) %>%
+    t()
+
+  ### InfeRate CI
+  InfeRate_CI <- do.call(rbind, lapply(VacList, \(x) x[["InfeRate"]]))
+  InfeRate_CI <- InfeRate_CI %>%
     apply(., 2, \(x){
       quantile(x, c(0.025, 0.5, 0.975))
     }) %>%
@@ -2001,6 +2108,15 @@ Vac.Posterior <- function(VacList) {
     lci = round(quantile(cases, probs = 0.025, type = 1), 0),
     uci = round(quantile(cases, probs = 0.975, type = 1), 0)
   ), by = age_group][, CI := paste0(median, " (", lci, ", ", uci, ")")]
+
+  ### NetProtect All age CI
+  # [Hospitalization]
+  NetProtectHosp_all_CI <- do.call(rbind, lapply(VacList, \(x) x[["NetProtectHosp_all"]]))
+  NetProtectHosp_all_CI <- round(quantile(unlist(NetProtectHosp_all_CI), probs = c(0.025, 0.5, 0.975), type = 1), 0)
+
+  # [Infection]
+  NetProtectInfe_all_CI <- do.call(rbind, lapply(VacList, \(x) x[["NetProtectInfe_all"]]))
+  NetProtectInfe_all_CI <- round(quantile(unlist(NetProtectInfe_all_CI), probs = c(0.025, 0.5, 0.975), type = 1), 0)
 
 
   ### VacProtection CI
@@ -2055,17 +2171,28 @@ Vac.Posterior <- function(VacList) {
   AvertHospPerVac_CI <- do.call(rbind, lapply(VacList, \(x) x[["AvertHospPerVac"]]))
   AvertHospPerVac_CI <- round(quantile(unlist(AvertHospPerVac_CI), probs = c(0.025, 0.5, 0.975), type = 1), 5)
 
+  NNV_Infe_CI <- do.call(rbind, lapply(VacList, \(x) x[["NNV_Infe"]]))
+  NNV_Infe_CI <- round(quantile(unlist(NNV_Infe_CI), probs = c(0.025, 0.5, 0.975), type = 1), 5)
+
+  VacNumber_CI <- do.call(rbind, lapply(VacList, \(x) x[["VacNumber"]]))
+  VacNumber_CI <- round(quantile(unlist(VacNumber_CI), probs = c(0.025, 0.5, 0.975), type = 1), 5)
+
   return(list(
     NetProtectHosp = NetProtectHosp_CI,
     NetProtectHosp_2age = NetProtectHosp_2age_CI,
+    NetProtectHosp_all = NetProtectHosp_all_CI,
     VacProtectionHosp_age = VacProtectionHosp_CI,
     VacProtectionHosp = resultHosp,
-    Prop_H2I_CI = Prop_H2I_CI,
+    Prop_I2H_CI = Prop_I2H_CI,
     AvertHospPerVac_CI = AvertHospPerVac_CI,
+    NNV_Infe_CI = NNV_Infe_CI,
+    VacNumber_CI = VacNumber_CI,
     NetProtectInfe = NetProtectInfe_CI,
     NetProtectInfe_2age = NetProtectInfe_2age_CI,
+    NetProtectInfe_all = NetProtectInfe_all_CI,
     VacProtectionInfe_age = VacProtectionInfe_CI,
-    VacProtectionInfe = resultInfe
+    VacProtectionInfe = resultInfe,
+    InfeRate_CI = InfeRate_CI
   ))
 }
 
@@ -2122,8 +2249,8 @@ Vac.Plot <- function(
           "Reported_G10", "Reported_G11"
         ),
         labels = c(
-          "0-2m", "3-5m", "6-11m", "12-23m", "2-4y", "5-19y",
-          "20-59y", "60-64y", "65-69y", "70-74y", "75+y"
+          "0-3 M", "3-6 M", "6-12 M", "1-2 Y", "2-5 Y", "5-20 Y",
+          "20-60 Y", "60-65 Y", "65-70 Y", "70-75 Y", "75+ Y"
         )
       ),
       week = ISOweek::ISOweek2date(paste0(week, "-1"))
@@ -2132,8 +2259,8 @@ Vac.Plot <- function(
   Fig <- MergeDat %>%
     ggplot(.) +
     # geom_line(aes(x = week, y = summ, group = age_group), alpha = 0.2) +
-    geom_line(aes(x = week, y = ImmuInfe, group = age_group), colour = "blue", alpha = 0.7, linewidth = 1.2) + # linetype = 3,
-    geom_line(aes(x = week, y = BaseInfe, group = age_group), colour = "red") +
+    geom_line(aes(x = week, y = ImmuInfe, group = age_group), colour = "#074ba9", alpha = 0.7, linewidth = 1.2) + # linetype = 3,
+    geom_line(aes(x = week, y = BaseInfe, group = age_group), colour = "#be134c") +
     geom_vline(xintercept = as.Date(c("2018-01-01", "2019-01-01", "2020-01-01")), linetype = "dashed", alpha = 0.2) +
     labs(
       x = "Date",
@@ -2156,6 +2283,133 @@ Vac.Plot <- function(
   return(Fig)
 }
 
+
+Vac.Plot.Batch <- function(dat, save = FALSE, path, width, height) {
+  ImmuInfe <- lapply(seq_along(dat), \(x) {
+    dat <- dat[[x]][["FigDat_Immu"]]
+    dat <- melt.data.table(dat, id.vars = c("time", "week"), variable.name = "age_group", value.name = "Cases")
+    dat <- dat[time >= as.Date("2019-06-10")]
+    dat$SimNum <- x
+    return(dat)
+  })
+  ImmuInfe <- do.call(rbind, ImmuInfe)
+  BaseInfe <- lapply(seq_along(dat), \(x) {
+    dat <- dat[[x]][["FigDat_Base"]]
+    dat <- melt.data.table(dat, id.vars = c("time", "week"), variable.name = "age_group", value.name = "Cases")
+    dat <- dat[time >= as.Date("2019-06-10")]
+    dat$SimNum <- x
+    return(dat)
+  })
+  BaseInfe <- do.call(rbind, BaseInfe)
+
+  MergeDat <- merge(ImmuInfe, BaseInfe, by = c("time", "week", "age_group", "SimNum"))
+  setnames(MergeDat, c("time", "week", "age_group", "SimNum", "ImmuInfe", "BaseInfe"))
+
+  MergeDat <- MergeDat %>%
+    mutate(
+      age_group = factor(age_group,
+        levels = c(
+          "Reported_G1", "Reported_G2", "Reported_G3",
+          "Reported_G4", "Reported_G5", "Reported_G6",
+          "Reported_G7", "Reported_G8", "Reported_G9",
+          "Reported_G10", "Reported_G11"
+        ),
+        labels = c(
+          "0-3 M", "3-6 M", "6-12 M", "1-2 Y", "2-5 Y", "5-20 Y",
+          "20-60 Y", "60-65 Y", "65-70 Y", "70-75 Y", "75+ Y"
+        )
+      ),
+      week = ISOweek::ISOweek2date(paste0(week, "-1"))
+    )
+
+
+  MedianDat <- MergeDat %>%
+    group_by(week, age_group) %>%
+    summarise(
+      ImmuInfe = median(ImmuInfe),
+      BaseInfe = median(BaseInfe),
+      .groups = "drop"
+    )
+
+  Fig <- MergeDat %>%
+    ggplot() +
+    # geom_line(aes(x = week, y = summ, group = age_group), alpha = 0.2) +
+    geom_line(aes(x = week, y = BaseInfe, group = interaction(SimNum, age_group)), colour = "red", alpha = 0.01, linewidth = 0.2) +
+    geom_line(aes(x = week, y = ImmuInfe, group = interaction(SimNum, age_group)), colour = "blue", alpha = 0.01, linewidth = 0.2) +
+    geom_line(data = MedianDat, aes(x = week, y = BaseInfe, group = age_group), colour = "#be134c", linewidth = 0.2) +
+    geom_line(data = MedianDat, aes(x = week, y = ImmuInfe, group = age_group), colour = "#074ba9", linewidth = 0.2) +
+    geom_vline(xintercept = as.Date(c("2018-01-01", "2019-01-01", "2020-01-01")), linetype = "dashed", alpha = 0.2) +
+    labs(
+      x = "Date",
+      y = "Number of cases"
+    ) +
+    theme_bw() +
+    scale_x_date(date_labels = "%b") +
+    theme(
+      axis.text.x = element_text(size = 14),
+      axis.text.y = element_text(size = 14),
+      axis.title = element_text(size = 20),
+      strip.text = element_text(size = 20),
+      strip.background = element_rect(fill = "grey95"),
+      plot.margin = margin(r = 20)
+    ) +
+    facet_wrap(~age_group)
+
+
+  MergeDat_all <- MergeDat %>%
+    group_by(week, SimNum) %>%
+    summarise(
+      ImmuInfe = sum(ImmuInfe),
+      BaseInfe = sum(BaseInfe),
+      .groups = "drop"
+    )
+
+  MedianDat_all <- MedianDat %>%
+    group_by(week) %>%
+    summarise(
+      ImmuInfe = sum(ImmuInfe),
+      BaseInfe = sum(BaseInfe),
+      .groups = "drop"
+    )
+
+  Fig_All <- MergeDat_all %>%
+    ggplot() +
+    geom_line(aes(x = week, y = BaseInfe, group = SimNum), colour = "red", alpha = 0.01, linewidth = 0.2) +
+    geom_line(aes(x = week, y = ImmuInfe, group = SimNum), colour = "blue", alpha = 0.01, linewidth = 0.2) +
+    geom_line(data = MedianDat_all, aes(x = week, y = BaseInfe), colour = "#be134c", linewidth = 0.2) +
+    geom_line(data = MedianDat_all, aes(x = week, y = ImmuInfe), colour = "#074ba9", linewidth = 0.2) +
+    geom_vline(xintercept = as.Date(c("2018-01-01", "2019-01-01", "2020-01-01")), linetype = "dashed", alpha = 0.2) +
+    labs(
+      x = "Time",
+      y = "Number of cases"
+    ) +
+    theme_bw() +
+    scale_x_date(date_labels = "%b") +
+    theme(
+      axis.text.x = element_text(size = 10),
+      axis.text.y = element_text(size = 10),
+      axis.title = element_text(size = 14),
+      plot.margin = margin(r = 10, t = 10)
+    )
+
+  ### Calculate peak reduction
+  MergeDat_Max <- MergeDat_all %>%
+    group_by(SimNum) %>%
+    summarize(
+      Max_Immu = max(ImmuInfe),
+      Max_Base = max(BaseInfe),
+      PeakReduction = round((Max_Base - Max_Immu) / Max_Base * 100, 2)
+    )
+  PeakReduction <- quantile(MergeDat_Max$PeakReduction, c(0.025, 0.5, 0.975))
+
+  if (save) {
+    ggsave(Fig, file = paste0(path, ".png"), width = width, height = height, dpi = 300, bg = "white")
+    ggsave(Fig_All, file = paste0(path, "_all.png"), width = 6, height = 5, dpi = 300, bg = "white")
+  }
+  return(PeakReduction)
+}
+
+
 #' @description A batch version of the vaccination simulation, return all results simultaneously
 #'
 Vac.Batch <- function(MCMC_Result,
@@ -2175,7 +2429,7 @@ Vac.Batch <- function(MCMC_Result,
     "Model.RunSim",
     "Parameter.Create", "RefDat", "Scot_Pop", "ContacrStr", "Scot_HospRate",
     "MCMC.PosteriorSample", "Model.RunSim.Immu", "Vac.Protection",
-    "Vac.Protection.Simulation", "Calu.PropH2I", "Calu.InfeRate",
+    "Vac.Protection.Simulation", "Calu.PropI2H", "Calu.InfeRate",
     "Vac.Protection.Simulation.Calculate"
   ))
   PosteriorResult <- parLapply(ParallelNodesInfo[[1]], Posteriori_Sample, \(sample) {
@@ -2204,62 +2458,45 @@ Vac.Batch <- function(MCMC_Result,
 
   # Plot the result
   if (Plot == TRUE) {
-    Fig <- Vac.Protection(
-      ModelParm = Posteriori_Median,
-      VacAgeGroup = VacAgeGroup,
-      lag = lag,
-      Age_Sus = Age_Sus,
-      Vac_start = Vac_start,
-      Effacy_I = Effacy_I,
-      Effacy_Hosp = Effacy_Hosp,
-      VacProp = VacProp,
-      Plot = TRUE, model = model,
-      save = save, path, width, height
-    )
+    PeakReduction <- Vac.Plot.Batch(PosteriorResult, save = save, path, width, height)
     return(list(
-      Prop_H2I = result_CI[[5]],
+      Prop_I2H = result_CI[["Prop_I2H_CI"]],
+      InfeRate = result_CI[["InfeRate_CI"]],
       NetProtectHosp = result_CI[["NetProtectHosp"]],
       NetProtectHosp_2age = result_CI[["NetProtectHosp_2age"]],
+      NetProtectHosp_all = result_CI[["NetProtectHosp_all"]],
       VacProtectionHosp_age = result_CI[["VacProtectionHosp_age"]],
       VacProtectionHosp = result_CI[["VacProtectionHosp"]],
       AvertHospPerVac = result_CI[["AvertHospPerVac_CI"]],
+      NNV_Infe = result_CI[["NNV_Infe_CI"]],
+      VacNumber = result_CI[["VacNumber_CI"]],
       NetProtectInfe = result_CI[["NetProtectInfe"]],
       NetProtectInfe_2age = result_CI[["NetProtectInfe_2age"]],
+      NetProtectInfe_all = result_CI[["NetProtectInfe_all"]],
       VacProtectionInfe_age = result_CI[["VacProtectionInfe_age"]],
       VacProtectionInfe = result_CI[["VacProtectionInfe"]],
-      Fig = Fig$Fig
+      PeakReduction = PeakReduction
     ))
   } else {
     return(list(
-      Prop_H2I = result_CI[[5]],
+      Prop_I2H = result_CI[["Prop_I2H_CI"]],
+      InfeRate = result_CI[["InfeRate_CI"]],
       NetProtectHosp = result_CI[["NetProtectHosp"]],
       NetProtectHosp_2age = result_CI[["NetProtectHosp_2age"]],
+      NetProtectHosp_all = result_CI[["NetProtectHosp_all"]],
       VacProtectionHosp_age = result_CI[["VacProtectionHosp_age"]],
       VacProtectionHosp = result_CI[["VacProtectionHosp"]],
       AvertHospPerVac = result_CI[["AvertHospPerVac_CI"]],
+      NNV_Infe = result_CI[["NNV_Infe_CI"]],
+      VacNumber = result_CI[["VacNumber_CI"]],
       NetProtectInfe = result_CI[["NetProtectInfe"]],
       NetProtectInfe_2age = result_CI[["NetProtectInfe_2age"]],
+      NetProtectInfe_all = result_CI[["NetProtectInfe_all"]],
       VacProtectionInfe_age = result_CI[["VacProtectionInfe_age"]],
       VacProtectionInfe = result_CI[["VacProtectionInfe"]]
     ))
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -2277,4 +2514,49 @@ AAP <- function(Dat, threshold) {
     )
   )
   return(epidemics)
+}
+
+
+
+
+Plot.AgeDistribution <- function(dat) {
+  HospDat <- dat[["NetProtectHosp"]]
+  HospDat <- HospDat %>% as.data.frame()
+  HospDat$class <- "Hosp"
+
+  InfeDat <- dat[["NetProtectInfe"]]
+  InfeDat <- InfeDat %>% as.data.frame()
+  InfeDat$class <- "Infe"
+
+  BindDat <- rbind(HospDat, InfeDat)
+
+  DatName <- as.character(substitute(dat))
+  DatName <- strsplit(DatName, "_")[[1]]
+  if (DatName[1] == "S44") {
+    prefix <- "S3"
+  } else if (DatName[1] == "S43") {
+    prefix <- "S2"
+  } else if (DatName[1] == "S42") {
+    prefix <- "S1"
+  } else if (DatName[1] == "SBase") {
+    prefix <- "S4"
+  }
+  DatName <- paste(prefix, DatName[2], sep = "_")
+
+  BindDat$Scenario <- DatName
+
+  BindDat <- BindDat %>%
+    mutate(
+      age_group = factor(age_group, levels = c(rev(unique(BindDat$age_group)))),
+      class = factor(class, levels = c("Infe", "Hosp"))
+    )
+
+  # ggplot(BindDat, aes(x = age_group, y = median, fill = class)) +
+  #   geom_col(colour = "#000000", alpha = 0.4) +
+  #   theme_minimal() +
+  #   labs(
+  #     x = "Age group",
+  #     y = "Number of cases averted"
+  #   )
+  return(BindDat)
 }

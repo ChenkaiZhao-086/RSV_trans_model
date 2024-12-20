@@ -4,7 +4,7 @@ library(tidyverse)
 # Import data -------------------------------------------------------------
 # Import population data
 Scot_Pop <- read_excel("Pop.xlsx", sheet = "Scot_expand")
-Scot_Pop <- Scot_Pop[5, -1] %>% as.matrix()
+Scot_Pop <- Scot_Pop[9, -1] %>% as.matrix()
 colnames(Scot_Pop) <- c(
     "m0_2", "m3_5", "m6_11", "y1_2", "y2_4", "y5_9", "y10_14", "y15_19",
     "y20_24", "y25_29", "y30_34", "y35_39", "y40_44", "y45_49", "y50_54",
