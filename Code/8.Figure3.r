@@ -37,6 +37,7 @@ Fig3a1 <- ggplot(Fig3a1_dat, aes(x = median, y = Scenario, fill = class)) +
     geom_hline(yintercept = seq(2.5, 37.5, 2), color = "gray10", linetype = "longdash") +
     # geom_hline(yintercept = seq(0.5, 37.5, 6), color = "gray10", linetype = "solid") +
     scale_y_discrete(limits = rev(levels(Fig3a1_dat$Scenario))) +
+    scale_x_continuous(limits = function(x) c(min(x), max(x) * 1.15)) +
     facet_wrap(~type, scales = "free_x") +
     labs(
         y = "Programmes",
@@ -53,6 +54,12 @@ Fig3a1 <- ggplot(Fig3a1_dat, aes(x = median, y = Scenario, fill = class)) +
         strip.background = element_blank(),
         plot.margin = margin(r = 20),
         panel.spacing = unit(1.5, "lines")
+    ) +
+    geom_text(aes(x = uci, label = round(median, 1)),
+        position = position_dodge(width = 0.7),
+        hjust = -0.2,
+        size = 3.5,
+        fontface = "bold"
     )
 ggsave(Fig3a1, file = paste0(FilePath, "3a1.NetProtectAll.pdf"), width = 10, height = 4)
 
@@ -91,6 +98,7 @@ Fig3a2 <- ggplot(Fig3a2_dat, aes(x = median, y = Scenario, fill = class)) +
     geom_hline(yintercept = seq(2.5, 37.5, 2), color = "gray10", linetype = "longdash") +
     # geom_hline(yintercept = seq(0.5, 37.5, 6), color = "gray10", linetype = "solid") +
     scale_y_discrete(limits = rev(levels(Fig3a2_dat$Scenario))) +
+    scale_x_continuous(limits = function(x) c(min(x), max(x) * 1.05)) +
     facet_wrap(~type, scales = "free_x") +
     labs(
         y = "Programmes",
@@ -109,6 +117,12 @@ Fig3a2 <- ggplot(Fig3a2_dat, aes(x = median, y = Scenario, fill = class)) +
         panel.spacing = unit(1.5, "lines"),
         axis.ticks.y = element_blank(),
         axis.line.y = element_blank()
+    ) +
+    geom_text(aes(x = uci, label = round(median, 1)),
+        position = position_dodge(width = 0.7),
+        hjust = -0.3,
+        size = 3.5,
+        fontface = "bold"
     )
 ggsave(Fig3a2, file = paste0(FilePath, "3a2.VacProtectProp.pdf"), width = 10, height = 4)
 
@@ -147,6 +161,7 @@ Fig3b <- ggplot(Fig3b_dat, aes(x = median, y = Scenario, fill = class)) +
     geom_hline(yintercept = seq(2.5, 37.5, 2), color = "gray10", linetype = "longdash") +
     # geom_hline(yintercept = seq(0.5, 37.5, 6), color = "gray10", linetype = "solid") +
     scale_y_discrete(limits = rev(levels(Fig3b_dat$Scenario))) +
+    scale_x_continuous(limits = function(x) c(min(x), max(x) * 1.05)) +
     # scale_x_continuous(limits = c(5, 15)) +
     labs(
         y = "Programmes",
@@ -163,6 +178,12 @@ Fig3b <- ggplot(Fig3b_dat, aes(x = median, y = Scenario, fill = class)) +
         strip.background = element_blank(),
         plot.margin = margin(r = 20),
         panel.spacing = unit(1.5, "lines")
+    ) +
+    geom_text(aes(x = uci, label = round(median, 1)),
+        position = position_dodge(width = 0.7),
+        hjust = -0.2,
+        size = 3.5,
+        fontface = "bold"
     )
 ggsave(Fig3b, file = paste0(FilePath, "3b.NNV.pdf"), width = 10, height = 3.8)
 
@@ -201,6 +222,7 @@ Fig3c1 <- ggplot(Fig3c1_dat, aes(x = median, y = Scenario, fill = class)) +
     geom_hline(yintercept = seq(2.5, 37.5, 2), color = "gray10", linetype = "longdash") +
     # geom_hline(yintercept = seq(0.5, 37.5, 6), color = "gray10", linetype = "solid") +
     scale_y_discrete(limits = rev(levels(Fig3c1_dat$Scenario))) +
+    scale_x_continuous(limits = function(x) c(min(x), max(x) * 1.1)) +
     labs(
         y = "Programmes",
         x = "Number of cases averted",
@@ -218,6 +240,12 @@ Fig3c1 <- ggplot(Fig3c1_dat, aes(x = median, y = Scenario, fill = class)) +
         strip.background = element_blank(),
         plot.margin = margin(r = 20),
         panel.spacing = unit(1.5, "lines")
+    ) +
+    geom_text(aes(x = uci, label = round(median, 1)),
+        position = position_dodge(width = 0.7),
+        hjust = -0.2,
+        size = 3.5,
+        fontface = "bold"
     )
 ggsave(Fig3c1, file = paste0(FilePath, "3c1.NetProtect_Hosp.pdf"), width = 10, height = 4)
 
@@ -256,6 +284,7 @@ Fig3c2 <- ggplot(Fig3c2_dat, aes(x = median, y = Scenario, fill = class)) +
     geom_hline(yintercept = seq(2.5, 37.5, 2), color = "gray10", linetype = "longdash") +
     # geom_hline(yintercept = seq(0.5, 37.5, 6), color = "gray10", linetype = "solid") +
     scale_y_discrete(limits = rev(levels(Fig3c2_dat$Scenario))) +
+    scale_x_continuous(limits = function(x) c(min(x), max(x) * 1.1)) +
     labs(
         y = "Programmes",
         x = "Proportion of cases averted (%)",
@@ -275,5 +304,11 @@ Fig3c2 <- ggplot(Fig3c2_dat, aes(x = median, y = Scenario, fill = class)) +
         panel.spacing = unit(1.5, "lines"),
         axis.ticks.y = element_blank(),
         axis.line.y = element_blank()
+    ) +
+    geom_text(aes(x = uci, label = round(median, 1)),
+        position = position_dodge(width = 0.7),
+        hjust = -0.2,
+        size = 3.5,
+        fontface = "bold"
     )
 ggsave(Fig3c2, file = paste0(FilePath, "3c2.PropHosp.pdf"), width = 10, height = 4)

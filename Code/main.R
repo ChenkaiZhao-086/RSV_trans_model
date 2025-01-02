@@ -19,6 +19,10 @@ library(scales)
 # save.image(file = paste0(FilePath, "20241206.Rdata"))
 load("Output/V1/20241206.Rdata")
 
+### All resuls
+# save.image(file = paste0(FilePath, "20241210.Rdata"))
+load("Output/V1/20241210.Rdata")
+
 source("Code/func.R")
 source("Code/RefDat.R")
 # source("Code/RefDat_MA.R")
@@ -45,6 +49,7 @@ source("Code/Calibration/Calibration.r")
 # Immunisation ---------------------------------------------------------------
 ### Run immunisation scenarios
 source("Code/Immunisation/Immune.R")
+source("Code/Immunisation/ModifyBase.R")
 
 # Section 1 ------------------------------------------------------------------
 ### Find the best parameter set (by serological prevalence)
@@ -79,7 +84,3 @@ source("Code/9.AgeDis.r")
 
 ### Peak reduction for appendix
 source("Code/10.PeakReduction.r")
-
-### All resuls
-save.image(file = paste0(FilePath, "20241210.Rdata"))
-load("Output/V1/20241210.Rdata")

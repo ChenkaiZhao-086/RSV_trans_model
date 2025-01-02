@@ -21,6 +21,8 @@ VacProtectNet_All <- lapply(FindVarableList, \(x) {
         prefix <- "S4"
     } else if (parts[1] == "SBase") {
         prefix <- "S1"
+    } else if (parts[1] == "SBaseM") {
+        prefix <- "S5"
     }
 
     x <- paste(prefix, parts[2], sep = "_")
@@ -54,6 +56,8 @@ VacProtectNet_Infe <- lapply(FindVarableList, \(x) {
         prefix <- "S4"
     } else if (parts[1] == "SBase") {
         prefix <- "S1"
+    } else if (parts[1] == "SBaseM") {
+        prefix <- "S5"
     }
 
     x <- paste(prefix, parts[2], sep = "_")
@@ -79,21 +83,22 @@ VacProtectNet_All <- rbind(VacProtectNet_All, VacProtectNet_Infe) %>%
 NetProtectAll_Main <- VacProtectNet_All %>%
     filter(Scenario %in% c(
         "S1_E7C8A", "S1_E7C8B", "S1_E7C8C",
+        "S5_E7C8A", "S5_E7C8B", "S5_E7C8C",
         "S2_E7C8A", "S2_E7C8B", "S2_E7C8C"
     )) %>%
     mutate(
         class = substr(Scenario, 1, 2),
-        class = factor(class, levels = c("S2", "S1")),
+        class = factor(class, levels = c("S2", "S5", "S1")),
         Scenario = factor(Scenario,
             levels = c(
-                "S1_E7C8A", "S2_E7C8A",
-                "S1_E7C8B", "S2_E7C8B",
-                "S1_E7C8C", "S2_E7C8C"
+                "S1_E7C8A", "S5_E7C8A", "S2_E7C8A",
+                "S1_E7C8B", "S5_E7C8B", "S2_E7C8B",
+                "S1_E7C8C", "S5_E7C8C", "S2_E7C8C"
             ),
             labels = c(
-                "0-11m", "0-11m",
-                "0-23m", "0-23m",
-                "0-4y", "0-4y"
+                "0-11m", "0-11m", "0-11m",
+                "0-23m", "0-23m", "0-23m",
+                "0-4y", "0-4y", "0-4y"
             )
         )
     )
@@ -110,6 +115,7 @@ NetProtectAll_Fig <- ggplot(NetProtectAll_Main, aes(x = median, y = Scenario, fi
     # geom_hline(yintercept = seq(0.5, 37.5, 1), color = "gray75", linetype = "longdash") +
     geom_hline(yintercept = seq(1.5, 37.5, 1), color = "gray10", linetype = "longdash") +
     scale_y_discrete(limits = rev(levels(NetProtectAll_Main$Scenario))) +
+    scale_x_continuous(limits = function(x) c(min(x), max(x) * 1.18)) +
     facet_wrap(~type, scales = "free_x") +
     labs(
         y = "Programmes",
@@ -123,8 +129,14 @@ NetProtectAll_Fig <- ggplot(NetProtectAll_Main, aes(x = median, y = Scenario, fi
         legend.position = "none",
         strip.background = element_blank(),
         strip.text = element_text(size = 14, face = "bold"),
-        panel.spacing = unit(1.5, "lines"),
-        plot.margin = margin(r = 10)
+        panel.spacing = unit(1.7, "lines"),
+        plot.margin = margin(r = 15)
+    ) +
+    geom_text(aes(x = uci, label = round(median, 1)),
+        position = position_dodge(width = 0.6),
+        hjust = -0.2,
+        size = 3.5,
+        fontface = "bold"
     )
 ggsave(NetProtectAll_Fig, file = paste0(FilePath, "2a1.NetProtectAll.pdf"), width = 8, height = 3)
 
@@ -138,9 +150,9 @@ VacProtectNet_All_Fig <- ggplot(VacProtectNet_All, aes(x = median, y = Scenario,
         "#074ba9", "#be134c"
     )) +
     theme_bw() +
-    geom_hline(yintercept = seq(0.5, 74.5, 1), color = "gray75", linetype = "longdash") +
-    geom_hline(yintercept = seq(6.5, 74.5, 6), color = "gray40", linetype = "longdash") +
-    geom_hline(yintercept = seq(18.5, 74.5, 18), color = "gray10", linetype = "solid") +
+    geom_hline(yintercept = seq(0.5, 92.5, 1), color = "gray75", linetype = "longdash") +
+    geom_hline(yintercept = seq(6.5, 92.5, 6), color = "gray40", linetype = "longdash") +
+    geom_hline(yintercept = seq(18.5, 92.5, 18), color = "gray10", linetype = "solid") +
     scale_y_discrete(limits = rev(levels(VacProtectNet_All$Scenario))) +
     # scale_x_log10() +
     facet_wrap(~type, scales = "free_x") +
@@ -149,21 +161,19 @@ VacProtectNet_All_Fig <- ggplot(VacProtectNet_All, aes(x = median, y = Scenario,
         x = "Number of cases averted"
     ) +
     theme(
-        axis.text = element_text(size = 14, face = "bold"),
-        axis.title = element_text(size = 16, face = "bold"),
+        axis.text = element_text(size = 6, face = "bold"),
+        axis.title = element_text(size = 7, face = "bold"),
         axis.title.y = element_text(margin = margin(r = 10)),
         axis.text.x = element_text(margin = margin(b = 5)),
-        legend.title = element_blank(),
-        legend.text = element_text(size = 14, face = "bold"),
         legend.position = "none",
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
         strip.background = element_rect(fill = "grey95"),
-        plot.margin = margin(r = 20)
+        strip.text = element_text(size = 7, face = "bold"),
+        plot.margin = margin(l = 6, r = 6, b = 6)
     )
 
-ggsave(VacProtectNet_All_Fig, file = paste0(FilePath, "2a1.NetProtectAll_Appendix.pdf"), width = 12, height = 16)
-
+ggsave(VacProtectNet_All_Fig, file = paste0(FilePath, "2a1.NetProtectAll_Appendix.pdf"), width = 6, height = 8)
 
 
 
@@ -184,6 +194,8 @@ VacProtect_All <- lapply(FindVarableList, \(x) {
         prefix <- "S4"
     } else if (parts[1] == "SBase") {
         prefix <- "S1"
+    } else if (parts[1] == "SBaseM") {
+        prefix <- "S5"
     }
 
     x <- paste(prefix, parts[2], sep = "_")
@@ -214,6 +226,8 @@ VacProtectInfe_All <- lapply(FindVarableList, \(x) {
         prefix <- "S4"
     } else if (parts[1] == "SBase") {
         prefix <- "S1"
+    } else if (parts[1] == "SBaseM") {
+        prefix <- "S5"
     }
 
     x <- paste(prefix, parts[2], sep = "_")
@@ -240,21 +254,22 @@ VacProtect_All <- rbind(VacProtect_All, VacProtectInfe_All) %>%
 VacProtectProp_All <- VacProtect_All %>%
     filter(Scenario %in% c(
         "S1_E7C8A", "S1_E7C8B", "S1_E7C8C",
+        "S5_E7C8A", "S5_E7C8B", "S5_E7C8C",
         "S2_E7C8A", "S2_E7C8B", "S2_E7C8C"
     )) %>%
     mutate(
         class = substr(Scenario, 1, 2),
-        class = factor(class, levels = c("S2", "S1")),
+        class = factor(class, levels = c("S2", "S5", "S1")),
         Scenario = factor(Scenario,
             levels = c(
-                "S1_E7C8A", "S2_E7C8A",
-                "S1_E7C8B", "S2_E7C8B",
-                "S1_E7C8C", "S2_E7C8C"
+                "S1_E7C8A", "S5_E7C8A", "S2_E7C8A",
+                "S1_E7C8B", "S5_E7C8B", "S2_E7C8B",
+                "S1_E7C8C", "S5_E7C8C", "S2_E7C8C"
             ),
             labels = c(
-                "0-11m", "0-11m",
-                "0-23m", "0-23m",
-                "0-4y", "0-4y"
+                "0-11m", "0-11m", "0-11m",
+                "0-23m", "0-23m", "0-23m",
+                "0-4y", "0-4y", "0-4y"
             )
         )
     )
@@ -272,6 +287,7 @@ VacProtectProp_Fig <- ggplot(VacProtectProp_All, aes(x = median, y = Scenario, f
     # geom_hline(yintercept = seq(3.5, 37.5, 6), color = "gray40", linetype = "longdash") +
     geom_hline(yintercept = seq(1.5, 37.5, 1), color = "gray10", linetype = "longdash") +
     scale_y_discrete(limits = rev(levels(VacProtectProp_All$Scenario))) +
+    scale_x_continuous(limits = function(x) c(min(x), max(x) * 1.15)) +
     facet_wrap(~type, scales = "free_x") +
     labs(
         y = "Programmes",
@@ -289,6 +305,12 @@ VacProtectProp_Fig <- ggplot(VacProtectProp_All, aes(x = median, y = Scenario, f
         plot.margin = margin(r = 10),
         axis.ticks.y = element_blank(),
         axis.line.y = element_blank()
+    ) +
+    geom_text(aes(x = uci, label = round(median, 1)),
+        position = position_dodge(width = 0.6),
+        hjust = -0.3,
+        size = 3.5,
+        fontface = "bold"
     )
 ggsave(VacProtectProp_Fig, file = paste0(FilePath, "2a2.VacProtectProp.pdf"), width = 8, height = 3)
 
@@ -303,9 +325,9 @@ VacProtectProp_All_Fig <- ggplot(VacProtect_All, aes(x = median, y = Scenario, c
         "#074ba9", "#be134c"
     )) +
     theme_bw() +
-    geom_hline(yintercept = seq(0.5, 74.5, 1), color = "gray75", linetype = "longdash") +
-    geom_hline(yintercept = seq(6.5, 74.5, 6), color = "gray40", linetype = "longdash") +
-    geom_hline(yintercept = seq(18.5, 74.5, 18), color = "gray10", linetype = "solid") +
+    geom_hline(yintercept = seq(0.5, 92.5, 1), color = "gray75", linetype = "longdash") +
+    geom_hline(yintercept = seq(6.5, 92.5, 6), color = "gray40", linetype = "longdash") +
+    geom_hline(yintercept = seq(18.5, 92.5, 18), color = "gray10", linetype = "solid") +
     geom_vline(xintercept = 0, color = "gray85") +
     scale_y_discrete(limits = rev(levels(VacProtect_All$Scenario))) +
     labs(
@@ -313,15 +335,16 @@ VacProtectProp_All_Fig <- ggplot(VacProtect_All, aes(x = median, y = Scenario, c
         x = "Proportion reduction in all age groups (%)"
     ) +
     theme(
-        axis.text = element_text(size = 14, face = "bold"),
-        axis.title = element_text(size = 16, face = "bold"),
+        axis.text = element_text(size = 6, face = "bold"),
+        axis.title = element_text(size = 7, face = "bold"),
         axis.title.y = element_text(margin = margin(r = 10)),
         axis.text.x = element_text(margin = margin(b = 5)),
-        legend.title = element_blank(), # (size = 16, face = "bold"),
-        legend.text = element_text(size = 14, face = "bold"),
-        legend.position = "right",
+        legend.position = "none",
         panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank()
+        panel.grid.minor = element_blank(),
+        strip.background = element_rect(fill = "grey95"),
+        strip.text = element_text(size = 7, face = "bold"),
+        plot.margin = margin(l = 6, r = 6, b = 6)
     )
 
-ggsave(VacProtectProp_All_Fig, file = paste0(FilePath, "2a2.VacProtectProp_Appendix.pdf"), width = 12, height = 15)
+ggsave(VacProtectProp_All_Fig, file = paste0(FilePath, "2a2.VacProtectProp_Appendix.pdf"), width = 6, height = 8)

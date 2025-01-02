@@ -522,14 +522,20 @@ IR <- IR %>%
 #         legend.text = element_text(size = 18, face = "bold"),
 #         legend.position = "right"
 #     )
-IR_Main_Fig <- ggplot(IR, aes(x = age_group, y = median, group = Scenario)) +
+IR_Main_Fig <- IR %>%
+    mutate(
+        lci = lci * 100,
+        median = median * 100,
+        uci = uci * 100
+    ) %>%
+    ggplot(., aes(x = age_group, y = median, group = Scenario)) +
     geom_line(aes(colour = Scenario), alpha = 0.7) +
     geom_ribbon(aes(ymin = lci, ymax = uci, fill = Scenario), alpha = 0.2) +
     geom_point(aes(colour = Scenario), alpha = 0.5) +
     theme_classic() +
     labs(
         x = "Age group",
-        y = "Age-specific annual infection rates",
+        y = "Age-specific annual infection rates (%)",
         color = "Susceptibility", fill = "Susceptibility"
     ) +
     scale_fill_manual(values = c(

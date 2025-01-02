@@ -1782,10 +1782,12 @@ Calu.PropI2H <- function(ModelParm, lag, Age_Sus, Vac_start, Effacy_I = 0, Effac
 #' @return IndirectProtect = 总疫苗间接保护率,
 #' @return TotalProtect = 总疫苗保护率
 Vac.Protection <- function(
-    ModelParm, VacAgeGroup, lag, Age_Sus, Vac_start, Effacy_I, Effacy_Hosp, VacProp, model = "SIRVV",
-    Plot = FALSE, save = FALSE, path, width, height) {
+    ModelParm, Prop_I2H = NULL, VacAgeGroup, lag, Age_Sus, Vac_start, Effacy_I, Effacy_Hosp, VacProp,
+    model = "SIRVV", Plot = FALSE, save = FALSE, path, width, height) {
   ### Calculate the proportion of hospitalization to infection
-  Prop_I2H <- Calu.PropI2H(ModelParm, lag, Age_Sus, Vac_start, Effacy_I = 0, Effacy_Hosp = 0, VacProp, model)
+  if (is.null(Prop_I2H)) {
+    Prop_I2H <- Calu.PropI2H(ModelParm, lag, Age_Sus, Vac_start, Effacy_I = 0, Effacy_Hosp = 0, VacProp, model)
+  }
 
   ### Calculate the incidence rate after vaccination
   InfeCase <- Model.RunSim.Immu(Parm = Parameter.Create(
@@ -2412,7 +2414,7 @@ Vac.Plot.Batch <- function(dat, save = FALSE, path, width, height) {
 
 #' @description A batch version of the vaccination simulation, return all results simultaneously
 #'
-Vac.Batch <- function(MCMC_Result,
+Vac.Batch <- function(MCMC_Result, Prop_I2H = NULL,
                       Age_Sus, VacAgeGroup, Vac_start, Effacy_I, Effacy_Hosp,
                       VacProp, lag, model = "SIRVV",
                       Plot = TRUE, save = FALSE, path = NULL, width, height,
@@ -2420,7 +2422,9 @@ Vac.Batch <- function(MCMC_Result,
   # Extract data from MCMC
   Posteriori_Median <- MCMC_Result$Median
   Posteriori_Sample <- MCMC_Result$SampleChain %>% split(., row(.))
-
+  if (is.null(Prop_I2H)) {
+    Prop_I2H <- apply(Prop_I2H, 1, \(x) runif(1, x[1], x[3]))
+  }
 
   # Run simulation
   Parallel.Regist(10, seed = seed)
@@ -2438,6 +2442,7 @@ Vac.Batch <- function(MCMC_Result,
 
     SimResult <- Vac.Protection(
       ModelParm = sample,
+      Prop_I2H = Prop_I2H,
       VacAgeGroup = VacAgeGroup,
       lag = lag,
       Age_Sus = Age_Sus,

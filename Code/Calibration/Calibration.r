@@ -79,41 +79,41 @@ MCMC.TracePlot(S_64, paste0(SF_Calibration, "S64_"))
 
 # source("Code/Calibration/PlotCalibration.r")
 
-a <- signif(cbind(
-    PosterioriCheck_Sbase$Median,
-    PosterioriCheck_Sbase$CI,
-    PosterioriCheck_S44$Median,
-    PosterioriCheck_S44$CI,
-    PosterioriCheck_S43$Median,
-    PosterioriCheck_S43$CI,
-    PosterioriCheck_S42$Median,
-    PosterioriCheck_S42$CI,
-    PosterioriCheck_S54$Median,
-    PosterioriCheck_S54$CI,
-    PosterioriCheck_S53$Median,
-    PosterioriCheck_S53$CI,
-    PosterioriCheck_S52$Median,
-    PosterioriCheck_S52$CI,
-    PosterioriCheck_S64$Median,
-    PosterioriCheck_S64$CI,
-    PosterioriCheck_S63$Median,
-    PosterioriCheck_S63$CI,
-    PosterioriCheck_S62$Median,
-    PosterioriCheck_S62$CI
-), digits = 3)
+# parm <- signif(cbind(
+#     PosterioriCheck_Sbase$Median,
+#     PosterioriCheck_Sbase$CI,
+#     PosterioriCheck_S44$Median,
+#     PosterioriCheck_S44$CI,
+#     PosterioriCheck_S43$Median,
+#     PosterioriCheck_S43$CI,
+#     PosterioriCheck_S42$Median,
+#     PosterioriCheck_S42$CI,
+#     PosterioriCheck_S54$Median,
+#     PosterioriCheck_S54$CI,
+#     PosterioriCheck_S53$Median,
+#     PosterioriCheck_S53$CI,
+#     PosterioriCheck_S52$Median,
+#     PosterioriCheck_S52$CI,
+#     PosterioriCheck_S64$Median,
+#     PosterioriCheck_S64$CI,
+#     PosterioriCheck_S63$Median,
+#     PosterioriCheck_S63$CI,
+#     PosterioriCheck_S62$Median,
+#     PosterioriCheck_S62$CI
+# ), digits = 3)
 
-write.csv(
-    cbind(
-        paste0(a[, 1], " (", a[, 2], ", ", a[, 3], ")"),
-        paste0(a[, 4], " (", a[, 5], ", ", a[, 6], ")"),
-        paste0(a[, 7], " (", a[, 8], ", ", a[, 9], ")"),
-        paste0(a[, 10], " (", a[, 11], ", ", a[, 12], ")"),
-        paste0(a[, 13], " (", a[, 14], ", ", a[, 15], ")"),
-        paste0(a[, 16], " (", a[, 17], ", ", a[, 18], ")"),
-        paste0(a[, 19], " (", a[, 20], ", ", a[, 21], ")"),
-        paste0(a[, 22], " (", a[, 23], ", ", a[, 24], ")"),
-        paste0(a[, 25], " (", a[, 26], ", ", a[, 27], ")"),
-        paste0(a[, 28], " (", a[, 29], ", ", a[, 30], ")")
-    ),
-    file = paste0("Parm.csv"), row.names = FALSE
-)
+# write.csv(
+#     cbind(
+#         paste0(parm[, 1], " (", parm[, 2], ", ", parm[, 3], ")"),
+#         paste0(parm[, 4], " (", parm[, 5], ", ", parm[, 6], ")"),
+#         paste0(parm[, 7], " (", parm[, 8], ", ", parm[, 9], ")"),
+#         paste0(parm[, 10], " (", parm[, 11], ", ", parm[, 12], ")"),
+#         paste0(parm[, 13], " (", parm[, 14], ", ", parm[, 15], ")"),
+#         paste0(parm[, 16], " (", parm[, 17], ", ", parm[, 18], ")"),
+#         paste0(parm[, 19], " (", parm[, 20], ", ", parm[, 21], ")"),
+#         paste0(parm[, 22], " (", parm[, 23], ", ", parm[, 24], ")"),
+#         paste0(parm[, 25], " (", parm[, 26], ", ", parm[, 27], ")"),
+#         paste0(parm[, 28], " (", parm[, 29], ", ", parm[, 30], ")")
+#     ),
+#     file = paste0("Parm.csv"), row.names = FALSE
+# )
