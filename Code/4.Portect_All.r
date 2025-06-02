@@ -141,39 +141,80 @@ NetProtectAll_Fig <- ggplot(NetProtectAll_Main, aes(x = median, y = Scenario, fi
 ggsave(NetProtectAll_Fig, file = paste0(FilePath, "2a1.NetProtectAll.pdf"), width = 8, height = 3)
 
 ### For appendix: all scenarios
-VacProtectNet_All_Fig <- ggplot(VacProtectNet_All, aes(x = median, y = Scenario, color = type)) +
-    geom_point(alpha = 0.5, position = position_dodge(width = 0.7)) +
-    geom_errorbar(aes(xmin = lci, xmax = uci),
-        width = 0.4, position = position_dodge(width = 0.7)
-    ) +
-    scale_color_manual(values = c(
-        "#074ba9", "#be134c"
-    )) +
-    theme_bw() +
-    geom_hline(yintercept = seq(0.5, 92.5, 1), color = "gray75", linetype = "longdash") +
-    geom_hline(yintercept = seq(6.5, 92.5, 6), color = "gray40", linetype = "longdash") +
-    geom_hline(yintercept = seq(18.5, 92.5, 18), color = "gray10", linetype = "solid") +
-    scale_y_discrete(limits = rev(levels(VacProtectNet_All$Scenario))) +
-    # scale_x_log10() +
-    facet_wrap(~type, scales = "free_x") +
-    labs(
-        y = "Programmes",
-        x = "Number of cases averted"
-    ) +
-    theme(
-        axis.text = element_text(size = 6, face = "bold"),
-        axis.title = element_text(size = 7, face = "bold"),
-        axis.title.y = element_text(margin = margin(r = 10)),
-        axis.text.x = element_text(margin = margin(b = 5)),
-        legend.position = "none",
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        strip.background = element_rect(fill = "grey95"),
-        strip.text = element_text(size = 7, face = "bold"),
-        plot.margin = margin(l = 6, r = 6, b = 6)
+VacProtectNet_All <- VacProtectNet_All %>%
+    mutate(
+        Scenario2 = substr(Scenario, 4, 8),
+        Scenario2 = case_when(
+            Scenario2 == "E6C6A" ~ "Eff: 60%; Cov: 60%; Pop: 0-11m",
+            Scenario2 == "E6C6B" ~ "Eff: 60%; Cov: 60%; Pop: 0-23m",
+            Scenario2 == "E6C6C" ~ "Eff: 60%; Cov: 60%; Pop: 0-4y",
+            Scenario2 == "E6C7A" ~ "Eff: 60%; Cov: 70%; Pop: 0-11m",
+            Scenario2 == "E6C7B" ~ "Eff: 60%; Cov: 70%; Pop: 0-23m",
+            Scenario2 == "E6C7C" ~ "Eff: 60%; Cov: 70%; Pop: 0-4y",
+            Scenario2 == "E6C8A" ~ "Eff: 60%; Cov: 80%; Pop: 0-11m",
+            Scenario2 == "E6C8B" ~ "Eff: 60%; Cov: 80%; Pop: 0-23m",
+            Scenario2 == "E6C8C" ~ "Eff: 60%; Cov: 80%; Pop: 0-4y",
+            Scenario2 == "E7C6A" ~ "Eff: 70%; Cov: 60%; Pop: 0-11m",
+            Scenario2 == "E7C6B" ~ "Eff: 70%; Cov: 60%; Pop: 0-23m",
+            Scenario2 == "E7C6C" ~ "Eff: 70%; Cov: 60%; Pop: 0-4y",
+            Scenario2 == "E7C7A" ~ "Eff: 70%; Cov: 70%; Pop: 0-11m",
+            Scenario2 == "E7C7B" ~ "Eff: 70%; Cov: 70%; Pop: 0-23m",
+            Scenario2 == "E7C7C" ~ "Eff: 70%; Cov: 70%; Pop: 0-4y",
+            Scenario2 == "E7C8A" ~ "Eff: 70%; Cov: 80%; Pop: 0-11m",
+            Scenario2 == "E7C8B" ~ "Eff: 70%; Cov: 80%; Pop: 0-23m",
+            Scenario2 == "E7C8C" ~ "Eff: 70%; Cov: 80%; Pop: 0-4y",
+            Scenario2 == "E8C6A" ~ "Eff: 80%; Cov: 60%; Pop: 0-11m",
+            Scenario2 == "E8C6B" ~ "Eff: 80%; Cov: 60%; Pop: 0-23m",
+            Scenario2 == "E8C6C" ~ "Eff: 80%; Cov: 60%; Pop: 0-4y",
+            Scenario2 == "E8C7A" ~ "Eff: 80%; Cov: 70%; Pop: 0-11m",
+            Scenario2 == "E8C7B" ~ "Eff: 80%; Cov: 70%; Pop: 0-23m",
+            Scenario2 == "E8C7C" ~ "Eff: 80%; Cov: 70%; Pop: 0-4y",
+            Scenario2 == "E8C8A" ~ "Eff: 80%; Cov: 80%; Pop: 0-11m",
+            Scenario2 == "E8C8B" ~ "Eff: 80%; Cov: 80%; Pop: 0-23m",
+            Scenario2 == "E8C8C" ~ "Eff: 80%; Cov: 80%; Pop: 0-4y"
+        )
     )
 
-ggsave(VacProtectNet_All_Fig, file = paste0(FilePath, "2a1.NetProtectAll_Appendix.pdf"), width = 6, height = 8)
+SF_2a1 <- File.CreateSubFolder(FilePath, "2a1_VacProtectNet_All")
+Plot.Appendix.2a(VacProtectNet_All, xlab = "Number of cases averted", SF_2a1, "S1")
+Plot.Appendix.2a(VacProtectNet_All, xlab = "Number of cases averted", SF_2a1, "S2")
+Plot.Appendix.2a(VacProtectNet_All, xlab = "Number of cases averted", SF_2a1, "S3")
+Plot.Appendix.2a(VacProtectNet_All, xlab = "Number of cases averted", SF_2a1, "S4")
+Plot.Appendix.2a(VacProtectNet_All, xlab = "Number of cases averted", SF_2a1, "S5")
+
+# VacProtectNet_All_Fig <- ggplot(VacProtectNet_All, aes(x = median, y = Scenario, color = type)) +
+#     geom_point(alpha = 0.5, position = position_dodge(width = 0.7)) +
+#     geom_errorbar(aes(xmin = lci, xmax = uci),
+#         width = 0.4, position = position_dodge(width = 0.7)
+#     ) +
+#     scale_color_manual(values = c(
+#         "#074ba9", "#be134c"
+#     )) +
+#     theme_bw() +
+#     geom_hline(yintercept = seq(0.5, 92.5, 1), color = "gray75", linetype = "longdash") +
+#     geom_hline(yintercept = seq(6.5, 92.5, 6), color = "gray40", linetype = "longdash") +
+#     geom_hline(yintercept = seq(18.5, 92.5, 18), color = "gray10", linetype = "solid") +
+#     scale_y_discrete(limits = rev(levels(VacProtectNet_All$Scenario))) +
+#     # scale_x_log10() +
+#     facet_wrap(~type, scales = "free_x") +
+#     labs(
+#         y = "Programmes",
+#         x = "Number of cases averted"
+#     ) +
+#     theme(
+#         axis.text = element_text(size = 6, face = "bold"),
+#         axis.title = element_text(size = 7, face = "bold"),
+#         axis.title.y = element_text(margin = margin(r = 10)),
+#         axis.text.x = element_text(margin = margin(b = 5)),
+#         legend.position = "none",
+#         panel.grid.major = element_blank(),
+#         panel.grid.minor = element_blank(),
+#         strip.background = element_rect(fill = "grey95"),
+#         strip.text = element_text(size = 7, face = "bold"),
+#         plot.margin = margin(l = 6, r = 6, b = 6)
+#     )
+
+# ggsave(VacProtectNet_All_Fig, file = paste0(FilePath, "2a1.NetProtectAll_Appendix.pdf"), width = 6, height = 8)
 
 
 
@@ -316,35 +357,76 @@ ggsave(VacProtectProp_Fig, file = paste0(FilePath, "2a2.VacProtectProp.pdf"), wi
 
 
 ### For appendix: all scenarios
-VacProtectProp_All_Fig <- ggplot(VacProtect_All, aes(x = median, y = Scenario, color = type)) +
-    geom_point(alpha = 0.5, position = position_dodge(width = 0.7)) +
-    geom_errorbar(aes(xmin = lci, xmax = uci),
-        width = 0.4, position = position_dodge(width = 0.7)
-    ) +
-    scale_color_manual(values = c(
-        "#074ba9", "#be134c"
-    )) +
-    theme_bw() +
-    geom_hline(yintercept = seq(0.5, 92.5, 1), color = "gray75", linetype = "longdash") +
-    geom_hline(yintercept = seq(6.5, 92.5, 6), color = "gray40", linetype = "longdash") +
-    geom_hline(yintercept = seq(18.5, 92.5, 18), color = "gray10", linetype = "solid") +
-    geom_vline(xintercept = 0, color = "gray85") +
-    scale_y_discrete(limits = rev(levels(VacProtect_All$Scenario))) +
-    labs(
-        y = "Programmes",
-        x = "Proportion reduction in all age groups (%)"
-    ) +
-    theme(
-        axis.text = element_text(size = 6, face = "bold"),
-        axis.title = element_text(size = 7, face = "bold"),
-        axis.title.y = element_text(margin = margin(r = 10)),
-        axis.text.x = element_text(margin = margin(b = 5)),
-        legend.position = "none",
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        strip.background = element_rect(fill = "grey95"),
-        strip.text = element_text(size = 7, face = "bold"),
-        plot.margin = margin(l = 6, r = 6, b = 6)
+VacProtect_All <- VacProtect_All %>%
+    mutate(
+        Scenario2 = substr(Scenario, 4, 8),
+        Scenario2 = case_when(
+            Scenario2 == "E6C6A" ~ "Eff: 60%; Cov: 60%; Pop: 0-11m",
+            Scenario2 == "E6C6B" ~ "Eff: 60%; Cov: 60%; Pop: 0-23m",
+            Scenario2 == "E6C6C" ~ "Eff: 60%; Cov: 60%; Pop: 0-4y",
+            Scenario2 == "E6C7A" ~ "Eff: 60%; Cov: 70%; Pop: 0-11m",
+            Scenario2 == "E6C7B" ~ "Eff: 60%; Cov: 70%; Pop: 0-23m",
+            Scenario2 == "E6C7C" ~ "Eff: 60%; Cov: 70%; Pop: 0-4y",
+            Scenario2 == "E6C8A" ~ "Eff: 60%; Cov: 80%; Pop: 0-11m",
+            Scenario2 == "E6C8B" ~ "Eff: 60%; Cov: 80%; Pop: 0-23m",
+            Scenario2 == "E6C8C" ~ "Eff: 60%; Cov: 80%; Pop: 0-4y",
+            Scenario2 == "E7C6A" ~ "Eff: 70%; Cov: 60%; Pop: 0-11m",
+            Scenario2 == "E7C6B" ~ "Eff: 70%; Cov: 60%; Pop: 0-23m",
+            Scenario2 == "E7C6C" ~ "Eff: 70%; Cov: 60%; Pop: 0-4y",
+            Scenario2 == "E7C7A" ~ "Eff: 70%; Cov: 70%; Pop: 0-11m",
+            Scenario2 == "E7C7B" ~ "Eff: 70%; Cov: 70%; Pop: 0-23m",
+            Scenario2 == "E7C7C" ~ "Eff: 70%; Cov: 70%; Pop: 0-4y",
+            Scenario2 == "E7C8A" ~ "Eff: 70%; Cov: 80%; Pop: 0-11m",
+            Scenario2 == "E7C8B" ~ "Eff: 70%; Cov: 80%; Pop: 0-23m",
+            Scenario2 == "E7C8C" ~ "Eff: 70%; Cov: 80%; Pop: 0-4y",
+            Scenario2 == "E8C6A" ~ "Eff: 80%; Cov: 60%; Pop: 0-11m",
+            Scenario2 == "E8C6B" ~ "Eff: 80%; Cov: 60%; Pop: 0-23m",
+            Scenario2 == "E8C6C" ~ "Eff: 80%; Cov: 60%; Pop: 0-4y",
+            Scenario2 == "E8C7A" ~ "Eff: 80%; Cov: 70%; Pop: 0-11m",
+            Scenario2 == "E8C7B" ~ "Eff: 80%; Cov: 70%; Pop: 0-23m",
+            Scenario2 == "E8C7C" ~ "Eff: 80%; Cov: 70%; Pop: 0-4y",
+            Scenario2 == "E8C8A" ~ "Eff: 80%; Cov: 80%; Pop: 0-11m",
+            Scenario2 == "E8C8B" ~ "Eff: 80%; Cov: 80%; Pop: 0-23m",
+            Scenario2 == "E8C8C" ~ "Eff: 80%; Cov: 80%; Pop: 0-4y"
+        )
     )
 
-ggsave(VacProtectProp_All_Fig, file = paste0(FilePath, "2a2.VacProtectProp_Appendix.pdf"), width = 6, height = 8)
+SF_2a2 <- File.CreateSubFolder(FilePath, "2a2_VacProtectProp_All")
+Plot.Appendix.2a(VacProtect_All, xlab = "Proportion reduction in all age groups (%)", SF_2a2, "S1")
+Plot.Appendix.2a(VacProtect_All, xlab = "Proportion reduction in all age groups (%)", SF_2a2, "S2")
+Plot.Appendix.2a(VacProtect_All, xlab = "Proportion reduction in all age groups (%)", SF_2a2, "S3")
+Plot.Appendix.2a(VacProtect_All, xlab = "Proportion reduction in all age groups (%)", SF_2a2, "S4")
+Plot.Appendix.2a(VacProtect_All, xlab = "Proportion reduction in all age groups (%)", SF_2a2, "S5")
+
+# VacProtectProp_All_Fig <- ggplot(VacProtect_All, aes(x = median, y = Scenario, color = type)) +
+#     geom_point(alpha = 0.5, position = position_dodge(width = 0.7)) +
+#     geom_errorbar(aes(xmin = lci, xmax = uci),
+#         width = 0.4, position = position_dodge(width = 0.7)
+#     ) +
+#     scale_color_manual(values = c(
+#         "#074ba9", "#be134c"
+#     )) +
+#     theme_bw() +
+#     geom_hline(yintercept = seq(0.5, 92.5, 1), color = "gray75", linetype = "longdash") +
+#     geom_hline(yintercept = seq(6.5, 92.5, 6), color = "gray40", linetype = "longdash") +
+#     geom_hline(yintercept = seq(18.5, 92.5, 18), color = "gray10", linetype = "solid") +
+#     geom_vline(xintercept = 0, color = "gray85") +
+#     scale_y_discrete(limits = rev(levels(VacProtect_All$Scenario))) +
+#     labs(
+#         y = "Programmes",
+#         x = "Proportion reduction in all age groups (%)"
+#     ) +
+#     theme(
+#         axis.text = element_text(size = 6, face = "bold"),
+#         axis.title = element_text(size = 7, face = "bold"),
+#         axis.title.y = element_text(margin = margin(r = 10)),
+#         axis.text.x = element_text(margin = margin(b = 5)),
+#         legend.position = "none",
+#         panel.grid.major = element_blank(),
+#         panel.grid.minor = element_blank(),
+#         strip.background = element_rect(fill = "grey95"),
+#         strip.text = element_text(size = 7, face = "bold"),
+#         plot.margin = margin(l = 6, r = 6, b = 6)
+#     )
+
+# ggsave(VacProtectProp_All_Fig, file = paste0(FilePath, "2a2.VacProtectProp_Appendix.pdf"), width = 6, height = 8)

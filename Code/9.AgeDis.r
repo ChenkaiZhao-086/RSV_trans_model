@@ -19,6 +19,8 @@ Plot.AgeDistribution <- function(dat) {
         prefix <- "S4"
     } else if (DatName[1] == "SBase") {
         prefix <- "S1"
+    } else if (DatName[1] == "SBaseM") {
+        prefix <- "S5"
     }
     DatName <- paste(prefix, DatName[2], sep = "_")
 

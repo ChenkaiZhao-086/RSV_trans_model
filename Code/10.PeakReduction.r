@@ -12,13 +12,17 @@ PeakReductionDat <- lapply(FindVarableList, \(x) {
         prefix <- "S4"
     } else if (parts[1] == "SBase") {
         prefix <- "S1"
+    } else if (parts[1] == "SBaseM") {
+        prefix <- "S5"
     }
     x <- paste(prefix, parts[2], sep = "_")
 
     PeakReduction$Scenario <- x
     return(PeakReduction)
 })
-PeakReductionDat <- do.call(rbind, PeakReductionDat)
+PeakReductionDat <- do.call(rbind, PeakReductionDat) %>%
+    filter(!startsWith(Scenario, "S5"))
+
 
 PeakReductionDat <- PeakReductionDat %>%
     mutate(
@@ -26,15 +30,15 @@ PeakReductionDat <- PeakReductionDat %>%
         Class1 = factor(Class1),
         Class2 = substr(Scenario, 4, 7),
         Class2 = case_when(
-            Class2 == "E6C6" ~ "Eff: 60%\nCov: 60%",
-            Class2 == "E6C7" ~ "Eff: 60%\nCov: 70%",
-            Class2 == "E6C8" ~ "Eff: 60%\nCov: 80%",
-            Class2 == "E7C6" ~ "Eff: 70%\nCov: 60%",
-            Class2 == "E7C7" ~ "Eff: 70%\nCov: 70%",
-            Class2 == "E7C8" ~ "Eff: 70%\nCov: 80%",
-            Class2 == "E8C6" ~ "Eff: 80%\nCov: 60%",
-            Class2 == "E8C7" ~ "Eff: 80%\nCov: 70%",
-            Class2 == "E8C8" ~ "Eff: 80%\nCov: 80%"
+            Class2 == "E6C6" ~ "Eff: 60/70%\nCov: 60%",
+            Class2 == "E6C7" ~ "Eff: 60/70%\nCov: 70%",
+            Class2 == "E6C8" ~ "Eff: 60/70%\nCov: 80%",
+            Class2 == "E7C6" ~ "Eff: 70/80%\nCov: 60%",
+            Class2 == "E7C7" ~ "Eff: 70/80%\nCov: 70%",
+            Class2 == "E7C8" ~ "Eff: 70/80%\nCov: 80%",
+            Class2 == "E8C6" ~ "Eff: 80/90%\nCov: 60%",
+            Class2 == "E8C7" ~ "Eff: 80/90%\nCov: 70%",
+            Class2 == "E8C8" ~ "Eff: 80/90%\nCov: 80%"
         )
     )
 
@@ -105,4 +109,4 @@ PeakReductionDat_Main_Fig <- ggplot(PeakReductionDat_Main, aes(y = Class1, x = C
         legend.position = "right",
     )
 
-ggsave(PeakReductionDat_Main_Fig, file = paste0(FilePath, "PeakReduction_Fig.pdf"), width = 10, height = 7)
+ggsave(PeakReductionDat_Main_Fig, file = paste0(FilePath, "PeakReduction_Fig.pdf"), width = 11, height = 8)

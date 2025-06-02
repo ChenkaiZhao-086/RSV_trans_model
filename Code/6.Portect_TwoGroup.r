@@ -94,7 +94,7 @@ NetProtectHosp_Main_Fig <- ggplot(NetProtectHosp_Main, aes(x = median, y = Scena
         panel.spacing = unit(1.5, "lines"),
         plot.margin = margin(r = 10)
     ) +
-    geom_text(aes(x = uci, label = round(uci, 1)),
+    geom_text(aes(x = uci, label = round(median, 1)),
         position = position_dodge(width = 0.6),
         hjust = -0.3,
         size = 3.5,
@@ -105,38 +105,81 @@ ggsave(NetProtectHosp_Main_Fig, file = paste0(FilePath, "2d1.NetProtect_Hosp.pdf
 
 
 ### For appendix: all scenarios
-NetProtect_Hosp_Fig <- ggplot(NetProtectHosp, aes(x = median, y = Scenario, color = age_group)) +
-    geom_point(alpha = 0.5, position = position_dodge(width = 0.7)) +
-    geom_errorbar(aes(xmin = lci, xmax = uci),
-        width = 0.4, position = position_dodge(width = 0.7)
-    ) +
-    scale_color_manual(values = c(
-        "#008537", "#f25235"
-    )) +
-    theme_bw() +
-    geom_hline(yintercept = seq(0.5, 92.5, 1), color = "gray75", linetype = "longdash") +
-    geom_hline(yintercept = seq(6.5, 92.5, 6), color = "gray40", linetype = "longdash") +
-    geom_hline(yintercept = seq(18.5, 92.5, 18), color = "gray10", linetype = "solid") +
-    scale_y_discrete(limits = rev(levels(NetProtectHosp$Scenario))) +
-    labs(
-        y = "Programmes",
-        x = "Number of cases averted",
-        color = "Age group"
-    ) +
-    theme(
-        axis.text = element_text(size = 6, face = "bold"),
-        axis.title = element_text(size = 7, face = "bold"),
-        axis.title.y = element_text(margin = margin(r = 10)),
-        axis.text.x = element_text(margin = margin(b = 5)),
-        legend.position = "none",
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        strip.background = element_rect(fill = "grey95"),
-        strip.text = element_text(size = 7, face = "bold"),
-        plot.margin = margin(l = 6, r = 6, b = 6)
-    )
+NetProtectHosp <- NetProtectHosp %>%
+    mutate(
+        Scenario2 = substr(Scenario, 4, 8),
+        Scenario2 = case_when(
+            Scenario2 == "E6C6A" ~ "Eff: 60%; Cov: 60%; Pop: 0-11m",
+            Scenario2 == "E6C6B" ~ "Eff: 60%; Cov: 60%; Pop: 0-23m",
+            Scenario2 == "E6C6C" ~ "Eff: 60%; Cov: 60%; Pop: 0-4y",
+            Scenario2 == "E6C7A" ~ "Eff: 60%; Cov: 70%; Pop: 0-11m",
+            Scenario2 == "E6C7B" ~ "Eff: 60%; Cov: 70%; Pop: 0-23m",
+            Scenario2 == "E6C7C" ~ "Eff: 60%; Cov: 70%; Pop: 0-4y",
+            Scenario2 == "E6C8A" ~ "Eff: 60%; Cov: 80%; Pop: 0-11m",
+            Scenario2 == "E6C8B" ~ "Eff: 60%; Cov: 80%; Pop: 0-23m",
+            Scenario2 == "E6C8C" ~ "Eff: 60%; Cov: 80%; Pop: 0-4y",
+            Scenario2 == "E7C6A" ~ "Eff: 70%; Cov: 60%; Pop: 0-11m",
+            Scenario2 == "E7C6B" ~ "Eff: 70%; Cov: 60%; Pop: 0-23m",
+            Scenario2 == "E7C6C" ~ "Eff: 70%; Cov: 60%; Pop: 0-4y",
+            Scenario2 == "E7C7A" ~ "Eff: 70%; Cov: 70%; Pop: 0-11m",
+            Scenario2 == "E7C7B" ~ "Eff: 70%; Cov: 70%; Pop: 0-23m",
+            Scenario2 == "E7C7C" ~ "Eff: 70%; Cov: 70%; Pop: 0-4y",
+            Scenario2 == "E7C8A" ~ "Eff: 70%; Cov: 80%; Pop: 0-11m",
+            Scenario2 == "E7C8B" ~ "Eff: 70%; Cov: 80%; Pop: 0-23m",
+            Scenario2 == "E7C8C" ~ "Eff: 70%; Cov: 80%; Pop: 0-4y",
+            Scenario2 == "E8C6A" ~ "Eff: 80%; Cov: 60%; Pop: 0-11m",
+            Scenario2 == "E8C6B" ~ "Eff: 80%; Cov: 60%; Pop: 0-23m",
+            Scenario2 == "E8C6C" ~ "Eff: 80%; Cov: 60%; Pop: 0-4y",
+            Scenario2 == "E8C7A" ~ "Eff: 80%; Cov: 70%; Pop: 0-11m",
+            Scenario2 == "E8C7B" ~ "Eff: 80%; Cov: 70%; Pop: 0-23m",
+            Scenario2 == "E8C7C" ~ "Eff: 80%; Cov: 70%; Pop: 0-4y",
+            Scenario2 == "E8C8A" ~ "Eff: 80%; Cov: 80%; Pop: 0-11m",
+            Scenario2 == "E8C8B" ~ "Eff: 80%; Cov: 80%; Pop: 0-23m",
+            Scenario2 == "E8C8C" ~ "Eff: 80%; Cov: 80%; Pop: 0-4y"
+        )
+    ) %>%
+    rename(type = age_group)
 
-ggsave(NetProtect_Hosp_Fig, file = paste0(FilePath, "2d1.NetProtect_Hosp_Appendix.pdf"), width = 6, height = 8)
+SF_2d1 <- File.CreateSubFolder(FilePath, "2d1_NetProtectHosp_All")
+Plot.Appendix.2de(NetProtectHosp, xlab = "Number of cases averted", SF_2d1, "S1")
+Plot.Appendix.2de(NetProtectHosp, xlab = "Number of cases averted", SF_2d1, "S2")
+Plot.Appendix.2de(NetProtectHosp, xlab = "Number of cases averted", SF_2d1, "S3")
+Plot.Appendix.2de(NetProtectHosp, xlab = "Number of cases averted", SF_2d1, "S4")
+Plot.Appendix.2de(NetProtectHosp, xlab = "Number of cases averted", SF_2d1, "S5")
+
+
+# NetProtect_Hosp_Fig <- ggplot(NetProtectHosp, aes(x = median, y = Scenario, color = age_group)) +
+#     geom_point(alpha = 0.5, position = position_dodge(width = 0.7)) +
+#     geom_errorbar(aes(xmin = lci, xmax = uci),
+#         width = 0.4, position = position_dodge(width = 0.7)
+#     ) +
+#     scale_color_manual(values = c(
+#         "#008537", "#f25235"
+#     )) +
+#     theme_bw() +
+#     geom_hline(yintercept = seq(0.5, 92.5, 1), color = "gray75", linetype = "longdash") +
+#     geom_hline(yintercept = seq(6.5, 92.5, 6), color = "gray40", linetype = "longdash") +
+#     geom_hline(yintercept = seq(18.5, 92.5, 18), color = "gray10", linetype = "solid") +
+#     scale_y_discrete(limits = rev(levels(NetProtectHosp$Scenario))) +
+#     labs(
+#         y = "Programmes",
+#         x = "Number of cases averted",
+#         color = "Age group"
+#     ) +
+#     theme(
+#         axis.text = element_text(size = 6, face = "bold"),
+#         axis.title = element_text(size = 7, face = "bold"),
+#         axis.title.y = element_text(margin = margin(r = 10)),
+#         axis.text.x = element_text(margin = margin(b = 5)),
+#         legend.position = "none",
+#         panel.grid.major = element_blank(),
+#         panel.grid.minor = element_blank(),
+#         strip.background = element_rect(fill = "grey95"),
+#         strip.text = element_text(size = 7, face = "bold"),
+#         plot.margin = margin(l = 6, r = 6, b = 6)
+#     )
+
+# ggsave(NetProtect_Hosp_Fig, file = paste0(FilePath, "2d1.NetProtect_Hosp_Appendix.pdf"), width = 6, height = 8)
 
 
 #-------------------------------------------------------------------------------
@@ -245,42 +288,79 @@ PropHosp_Main_Fig <- ggplot(PropHosp_Main, aes(x = median, y = Scenario, fill = 
 ggsave(PropHosp_Main_Fig, file = paste0(FilePath, "2d2.PropHosp.pdf"), width = 8, height = 3)
 
 ### For appendix: all scenarios -------------------------------------------------------------
-PropHosp_Fig <- ggplot(PropHosp, aes(x = median, y = Scenario, colour = type)) +
-    geom_point(alpha = 0.5, position = position_dodge(width = 0.7)) +
-    geom_errorbar(aes(xmin = lci, xmax = uci),
-        width = 0.4, position = position_dodge(width = 0.7)
-    ) +
-    scale_color_manual(values = c(
-        "#008537", "#f25235"
-    )) +
-    theme_bw() +
-    geom_hline(yintercept = seq(0.5, 92.5, 1), color = "gray75", linetype = "longdash") +
-    geom_hline(yintercept = seq(6.5, 92.5, 6), color = "gray40", linetype = "longdash") +
-    geom_hline(yintercept = seq(18.5, 92.5, 18), color = "gray10", linetype = "solid") +
-    geom_vline(xintercept = 0, color = "gray85") +
-    scale_y_discrete(limits = rev(levels(PropHosp$Scenario))) +
-    labs(
-        y = "Programmes",
-        x = "Proportion of cases averted (%)",
-        color = "Age group"
-    ) +
-    theme(
-        axis.text = element_text(size = 6, face = "bold"),
-        axis.title = element_text(size = 7, face = "bold"),
-        axis.title.y = element_text(margin = margin(r = 10)),
-        axis.text.x = element_text(margin = margin(b = 5)),
-        legend.position = "none",
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        strip.background = element_rect(fill = "grey95"),
-        strip.text = element_text(size = 7, face = "bold"),
-        plot.margin = margin(l = 6, r = 6, b = 6)
+PropHosp <- PropHosp %>%
+    mutate(
+        Scenario2 = substr(Scenario, 4, 8),
+        Scenario2 = case_when(
+            Scenario2 == "E6C6A" ~ "Eff: 60%; Cov: 60%; Pop: 0-11m",
+            Scenario2 == "E6C6B" ~ "Eff: 60%; Cov: 60%; Pop: 0-23m",
+            Scenario2 == "E6C6C" ~ "Eff: 60%; Cov: 60%; Pop: 0-4y",
+            Scenario2 == "E6C7A" ~ "Eff: 60%; Cov: 70%; Pop: 0-11m",
+            Scenario2 == "E6C7B" ~ "Eff: 60%; Cov: 70%; Pop: 0-23m",
+            Scenario2 == "E6C7C" ~ "Eff: 60%; Cov: 70%; Pop: 0-4y",
+            Scenario2 == "E6C8A" ~ "Eff: 60%; Cov: 80%; Pop: 0-11m",
+            Scenario2 == "E6C8B" ~ "Eff: 60%; Cov: 80%; Pop: 0-23m",
+            Scenario2 == "E6C8C" ~ "Eff: 60%; Cov: 80%; Pop: 0-4y",
+            Scenario2 == "E7C6A" ~ "Eff: 70%; Cov: 60%; Pop: 0-11m",
+            Scenario2 == "E7C6B" ~ "Eff: 70%; Cov: 60%; Pop: 0-23m",
+            Scenario2 == "E7C6C" ~ "Eff: 70%; Cov: 60%; Pop: 0-4y",
+            Scenario2 == "E7C7A" ~ "Eff: 70%; Cov: 70%; Pop: 0-11m",
+            Scenario2 == "E7C7B" ~ "Eff: 70%; Cov: 70%; Pop: 0-23m",
+            Scenario2 == "E7C7C" ~ "Eff: 70%; Cov: 70%; Pop: 0-4y",
+            Scenario2 == "E7C8A" ~ "Eff: 70%; Cov: 80%; Pop: 0-11m",
+            Scenario2 == "E7C8B" ~ "Eff: 70%; Cov: 80%; Pop: 0-23m",
+            Scenario2 == "E7C8C" ~ "Eff: 70%; Cov: 80%; Pop: 0-4y",
+            Scenario2 == "E8C6A" ~ "Eff: 80%; Cov: 60%; Pop: 0-11m",
+            Scenario2 == "E8C6B" ~ "Eff: 80%; Cov: 60%; Pop: 0-23m",
+            Scenario2 == "E8C6C" ~ "Eff: 80%; Cov: 60%; Pop: 0-4y",
+            Scenario2 == "E8C7A" ~ "Eff: 80%; Cov: 70%; Pop: 0-11m",
+            Scenario2 == "E8C7B" ~ "Eff: 80%; Cov: 70%; Pop: 0-23m",
+            Scenario2 == "E8C7C" ~ "Eff: 80%; Cov: 70%; Pop: 0-4y",
+            Scenario2 == "E8C8A" ~ "Eff: 80%; Cov: 80%; Pop: 0-11m",
+            Scenario2 == "E8C8B" ~ "Eff: 80%; Cov: 80%; Pop: 0-23m",
+            Scenario2 == "E8C8C" ~ "Eff: 80%; Cov: 80%; Pop: 0-4y"
+        )
     )
 
-ggsave(PropHosp_Fig, file = paste0(FilePath, "2d2.PropHosp_Appendix.pdf"), width = 6, height = 8)
+SF_2d2 <- File.CreateSubFolder(FilePath, "2d2_PropHosp_All")
+Plot.Appendix.2de(PropHosp, xlab = "Proportion of cases averted (%)", SF_2d2, "S1")
+Plot.Appendix.2de(PropHosp, xlab = "Proportion of cases averted (%)", SF_2d2, "S2")
+Plot.Appendix.2de(PropHosp, xlab = "Proportion of cases averted (%)", SF_2d2, "S3")
+Plot.Appendix.2de(PropHosp, xlab = "Proportion of cases averted (%)", SF_2d2, "S4")
+Plot.Appendix.2de(PropHosp, xlab = "Proportion of cases averted (%)", SF_2d2, "S5")
 
-
-
+# PropHosp_Fig <- ggplot(PropHosp, aes(x = median, y = Scenario, colour = type)) +
+#     geom_point(alpha = 0.5, position = position_dodge(width = 0.7)) +
+#     geom_errorbar(aes(xmin = lci, xmax = uci),
+#         width = 0.4, position = position_dodge(width = 0.7)
+#     ) +
+#     scale_color_manual(values = c(
+#         "#008537", "#f25235"
+#     )) +
+#     theme_bw() +
+#     geom_hline(yintercept = seq(0.5, 92.5, 1), color = "gray75", linetype = "longdash") +
+#     geom_hline(yintercept = seq(6.5, 92.5, 6), color = "gray40", linetype = "longdash") +
+#     geom_hline(yintercept = seq(18.5, 92.5, 18), color = "gray10", linetype = "solid") +
+#     geom_vline(xintercept = 0, color = "gray85") +
+#     scale_y_discrete(limits = rev(levels(PropHosp$Scenario))) +
+#     labs(
+#         y = "Programmes",
+#         x = "Proportion of cases averted (%)",
+#         color = "Age group"
+#     ) +
+#     theme(
+#         axis.text = element_text(size = 6, face = "bold"),
+#         axis.title = element_text(size = 7, face = "bold"),
+#         axis.title.y = element_text(margin = margin(r = 10)),
+#         axis.text.x = element_text(margin = margin(b = 5)),
+#         legend.position = "none",
+#         panel.grid.major = element_blank(),
+#         panel.grid.minor = element_blank(),
+#         strip.background = element_rect(fill = "grey95"),
+#         strip.text = element_text(size = 7, face = "bold"),
+#         plot.margin = margin(l = 6, r = 6, b = 6)
+#     )
+# ggsave(PropHosp_Fig, file = paste0(FilePath, "2d2.PropHosp_Appendix.pdf"), width = 6, height = 8)
 
 
 
@@ -386,38 +466,78 @@ NetProtectInfe_Main_Fig <- ggplot(NetProtectInfe_Main, aes(x = median, y = Scena
 ggsave(NetProtectInfe_Main_Fig, file = paste0(FilePath, "2e1.NetProtect_Infe.pdf"), width = 8, height = 3)
 
 ### Plot Fig 2e1 For appendix (All scenarios) -------------------------------------------------------------
-NetProtect_Infe_Fig <- ggplot(NetProtectInfe, aes(x = median, y = Scenario, color = age_group)) +
-    geom_point(alpha = 0.5, position = position_dodge(width = 0.7)) +
-    geom_errorbar(aes(xmin = lci, xmax = uci),
-        width = 0.4, position = position_dodge(width = 0.7)
-    ) +
-    scale_color_manual(values = c(
-        "#008537", "#f25235"
-    )) +
-    theme_bw() +
-    geom_hline(yintercept = seq(0.5, 92.5, 1), color = "gray75", linetype = "longdash") +
-    geom_hline(yintercept = seq(6.5, 92.5, 6), color = "gray40", linetype = "longdash") +
-    geom_hline(yintercept = seq(18.5, 92.5, 18), color = "gray10", linetype = "solid") +
-    scale_y_discrete(limits = rev(levels(NetProtectInfe$Scenario))) +
-    labs(
-        y = "Programmes",
-        x = "Number of cases averted",
-        color = "Age group"
-    ) +
-    theme(
-        axis.text = element_text(size = 6, face = "bold"),
-        axis.title = element_text(size = 7, face = "bold"),
-        axis.title.y = element_text(margin = margin(r = 10)),
-        axis.text.x = element_text(margin = margin(b = 5)),
-        legend.position = "none",
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        strip.background = element_rect(fill = "grey95"),
-        strip.text = element_text(size = 7, face = "bold"),
-        plot.margin = margin(l = 6, r = 6, b = 6)
-    )
+NetProtectInfe <- NetProtectInfe %>%
+    mutate(
+        Scenario2 = substr(Scenario, 4, 8),
+        Scenario2 = case_when(
+            Scenario2 == "E6C6A" ~ "Eff: 60%; Cov: 60%; Pop: 0-11m",
+            Scenario2 == "E6C6B" ~ "Eff: 60%; Cov: 60%; Pop: 0-23m",
+            Scenario2 == "E6C6C" ~ "Eff: 60%; Cov: 60%; Pop: 0-4y",
+            Scenario2 == "E6C7A" ~ "Eff: 60%; Cov: 70%; Pop: 0-11m",
+            Scenario2 == "E6C7B" ~ "Eff: 60%; Cov: 70%; Pop: 0-23m",
+            Scenario2 == "E6C7C" ~ "Eff: 60%; Cov: 70%; Pop: 0-4y",
+            Scenario2 == "E6C8A" ~ "Eff: 60%; Cov: 80%; Pop: 0-11m",
+            Scenario2 == "E6C8B" ~ "Eff: 60%; Cov: 80%; Pop: 0-23m",
+            Scenario2 == "E6C8C" ~ "Eff: 60%; Cov: 80%; Pop: 0-4y",
+            Scenario2 == "E7C6A" ~ "Eff: 70%; Cov: 60%; Pop: 0-11m",
+            Scenario2 == "E7C6B" ~ "Eff: 70%; Cov: 60%; Pop: 0-23m",
+            Scenario2 == "E7C6C" ~ "Eff: 70%; Cov: 60%; Pop: 0-4y",
+            Scenario2 == "E7C7A" ~ "Eff: 70%; Cov: 70%; Pop: 0-11m",
+            Scenario2 == "E7C7B" ~ "Eff: 70%; Cov: 70%; Pop: 0-23m",
+            Scenario2 == "E7C7C" ~ "Eff: 70%; Cov: 70%; Pop: 0-4y",
+            Scenario2 == "E7C8A" ~ "Eff: 70%; Cov: 80%; Pop: 0-11m",
+            Scenario2 == "E7C8B" ~ "Eff: 70%; Cov: 80%; Pop: 0-23m",
+            Scenario2 == "E7C8C" ~ "Eff: 70%; Cov: 80%; Pop: 0-4y",
+            Scenario2 == "E8C6A" ~ "Eff: 80%; Cov: 60%; Pop: 0-11m",
+            Scenario2 == "E8C6B" ~ "Eff: 80%; Cov: 60%; Pop: 0-23m",
+            Scenario2 == "E8C6C" ~ "Eff: 80%; Cov: 60%; Pop: 0-4y",
+            Scenario2 == "E8C7A" ~ "Eff: 80%; Cov: 70%; Pop: 0-11m",
+            Scenario2 == "E8C7B" ~ "Eff: 80%; Cov: 70%; Pop: 0-23m",
+            Scenario2 == "E8C7C" ~ "Eff: 80%; Cov: 70%; Pop: 0-4y",
+            Scenario2 == "E8C8A" ~ "Eff: 80%; Cov: 80%; Pop: 0-11m",
+            Scenario2 == "E8C8B" ~ "Eff: 80%; Cov: 80%; Pop: 0-23m",
+            Scenario2 == "E8C8C" ~ "Eff: 80%; Cov: 80%; Pop: 0-4y"
+        )
+    ) %>%
+    rename(type = age_group)
+SF_2e1 <- File.CreateSubFolder(FilePath, "2e1_NetProtect_Infe_All")
+Plot.Appendix.2de(NetProtectInfe, xlab = "Number of cases averted", SF_2e1, "S1")
+Plot.Appendix.2de(NetProtectInfe, xlab = "Number of cases averted", SF_2e1, "S2")
+Plot.Appendix.2de(NetProtectInfe, xlab = "Number of cases averted", SF_2e1, "S3")
+Plot.Appendix.2de(NetProtectInfe, xlab = "Number of cases averted", SF_2e1, "S4")
 
-ggsave(NetProtect_Infe_Fig, file = paste0(FilePath, "2e1.NetProtect_Infe_Appendix.pdf"), width = 6, height = 8)
+
+# NetProtect_Infe_Fig <- ggplot(NetProtectInfe, aes(x = median, y = Scenario, color = age_group)) +
+#     geom_point(alpha = 0.5, position = position_dodge(width = 0.7)) +
+#     geom_errorbar(aes(xmin = lci, xmax = uci),
+#         width = 0.4, position = position_dodge(width = 0.7)
+#     ) +
+#     scale_color_manual(values = c(
+#         "#008537", "#f25235"
+#     )) +
+#     theme_bw() +
+#     geom_hline(yintercept = seq(0.5, 92.5, 1), color = "gray75", linetype = "longdash") +
+#     geom_hline(yintercept = seq(6.5, 92.5, 6), color = "gray40", linetype = "longdash") +
+#     geom_hline(yintercept = seq(18.5, 92.5, 18), color = "gray10", linetype = "solid") +
+#     scale_y_discrete(limits = rev(levels(NetProtectInfe$Scenario))) +
+#     labs(
+#         y = "Programmes",
+#         x = "Number of cases averted",
+#         color = "Age group"
+#     ) +
+#     theme(
+#         axis.text = element_text(size = 6, face = "bold"),
+#         axis.title = element_text(size = 7, face = "bold"),
+#         axis.title.y = element_text(margin = margin(r = 10)),
+#         axis.text.x = element_text(margin = margin(b = 5)),
+#         legend.position = "none",
+#         panel.grid.major = element_blank(),
+#         panel.grid.minor = element_blank(),
+#         strip.background = element_rect(fill = "grey95"),
+#         strip.text = element_text(size = 7, face = "bold"),
+#         plot.margin = margin(l = 6, r = 6, b = 6)
+#     )
+# ggsave(NetProtect_Infe_Fig, file = paste0(FilePath, "2e1.NetProtect_Infe_Appendix.pdf"), width = 6, height = 8)
 
 
 #-------------------------------------------------------------------------------
@@ -525,36 +645,75 @@ PropInfe_Main_Fig <- ggplot(PropInfe_Main, aes(x = median, y = Scenario, fill = 
 ggsave(PropInfe_Main_Fig, file = paste0(FilePath, "2e2.PropInfe.pdf"), width = 8, height = 3)
 
 ### Plot Fig 2e2 For appendix (All scenarios) -------------------------------------------------------------
-PropInfe_Fig <- ggplot(PropInfe, aes(x = median, y = Scenario, color = type)) +
-    geom_point(alpha = 0.5, position = position_dodge(width = 0.7)) +
-    geom_errorbar(aes(xmin = lci, xmax = uci),
-        width = 0.4, position = position_dodge(width = 0.7)
-    ) +
-    scale_color_manual(values = c(
-        "#008537", "#f25235"
-    )) +
-    theme_bw() +
-    geom_hline(yintercept = seq(0.5, 92.5, 1), color = "gray75", linetype = "longdash") +
-    geom_hline(yintercept = seq(6.5, 92.5, 6), color = "gray40", linetype = "longdash") +
-    geom_hline(yintercept = seq(18.5, 92.5, 18), color = "gray10", linetype = "solid") +
-    geom_vline(xintercept = 0, color = "gray85") +
-    scale_y_discrete(limits = rev(levels(PropInfe$Scenario))) +
-    labs(
-        y = "Programmes",
-        x = "Proportion of cases averted (%)",
-        color = "Age group"
-    ) +
-    theme(
-        axis.text = element_text(size = 6, face = "bold"),
-        axis.title = element_text(size = 7, face = "bold"),
-        axis.title.y = element_text(margin = margin(r = 10)),
-        axis.text.x = element_text(margin = margin(b = 5)),
-        legend.position = "none",
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        strip.background = element_rect(fill = "grey95"),
-        strip.text = element_text(size = 7, face = "bold"),
-        plot.margin = margin(l = 6, r = 6, b = 6)
+PropInfe <- PropInfe %>%
+    mutate(
+        Scenario2 = substr(Scenario, 4, 8),
+        Scenario2 = case_when(
+            Scenario2 == "E6C6A" ~ "Eff: 60%; Cov: 60%; Pop: 0-11m",
+            Scenario2 == "E6C6B" ~ "Eff: 60%; Cov: 60%; Pop: 0-23m",
+            Scenario2 == "E6C6C" ~ "Eff: 60%; Cov: 60%; Pop: 0-4y",
+            Scenario2 == "E6C7A" ~ "Eff: 60%; Cov: 70%; Pop: 0-11m",
+            Scenario2 == "E6C7B" ~ "Eff: 60%; Cov: 70%; Pop: 0-23m",
+            Scenario2 == "E6C7C" ~ "Eff: 60%; Cov: 70%; Pop: 0-4y",
+            Scenario2 == "E6C8A" ~ "Eff: 60%; Cov: 80%; Pop: 0-11m",
+            Scenario2 == "E6C8B" ~ "Eff: 60%; Cov: 80%; Pop: 0-23m",
+            Scenario2 == "E6C8C" ~ "Eff: 60%; Cov: 80%; Pop: 0-4y",
+            Scenario2 == "E7C6A" ~ "Eff: 70%; Cov: 60%; Pop: 0-11m",
+            Scenario2 == "E7C6B" ~ "Eff: 70%; Cov: 60%; Pop: 0-23m",
+            Scenario2 == "E7C6C" ~ "Eff: 70%; Cov: 60%; Pop: 0-4y",
+            Scenario2 == "E7C7A" ~ "Eff: 70%; Cov: 70%; Pop: 0-11m",
+            Scenario2 == "E7C7B" ~ "Eff: 70%; Cov: 70%; Pop: 0-23m",
+            Scenario2 == "E7C7C" ~ "Eff: 70%; Cov: 70%; Pop: 0-4y",
+            Scenario2 == "E7C8A" ~ "Eff: 70%; Cov: 80%; Pop: 0-11m",
+            Scenario2 == "E7C8B" ~ "Eff: 70%; Cov: 80%; Pop: 0-23m",
+            Scenario2 == "E7C8C" ~ "Eff: 70%; Cov: 80%; Pop: 0-4y",
+            Scenario2 == "E8C6A" ~ "Eff: 80%; Cov: 60%; Pop: 0-11m",
+            Scenario2 == "E8C6B" ~ "Eff: 80%; Cov: 60%; Pop: 0-23m",
+            Scenario2 == "E8C6C" ~ "Eff: 80%; Cov: 60%; Pop: 0-4y",
+            Scenario2 == "E8C7A" ~ "Eff: 80%; Cov: 70%; Pop: 0-11m",
+            Scenario2 == "E8C7B" ~ "Eff: 80%; Cov: 70%; Pop: 0-23m",
+            Scenario2 == "E8C7C" ~ "Eff: 80%; Cov: 70%; Pop: 0-4y",
+            Scenario2 == "E8C8A" ~ "Eff: 80%; Cov: 80%; Pop: 0-11m",
+            Scenario2 == "E8C8B" ~ "Eff: 80%; Cov: 80%; Pop: 0-23m",
+            Scenario2 == "E8C8C" ~ "Eff: 80%; Cov: 80%; Pop: 0-4y"
+        )
     )
+SF_2e2 <- File.CreateSubFolder(FilePath, "2e2_PropInfe_All")
+Plot.Appendix.2de(PropInfe, xlab = "Proportion of cases averted (%)", SF_2e2, "S1")
+Plot.Appendix.2de(PropInfe, xlab = "Proportion of cases averted (%)", SF_2e2, "S2")
+Plot.Appendix.2de(PropInfe, xlab = "Proportion of cases averted (%)", SF_2e2, "S3")
+Plot.Appendix.2de(PropInfe, xlab = "Proportion of cases averted (%)", SF_2e2, "S4")
 
-ggsave(PropInfe_Fig, file = paste0(FilePath, "2e2.PropInfe_Appendix.pdf"), width = 6, height = 8)
+
+# PropInfe_Fig <- ggplot(PropInfe, aes(x = median, y = Scenario, color = type)) +
+#     geom_point(alpha = 0.5, position = position_dodge(width = 0.7)) +
+#     geom_errorbar(aes(xmin = lci, xmax = uci),
+#         width = 0.4, position = position_dodge(width = 0.7)
+#     ) +
+#     scale_color_manual(values = c(
+#         "#008537", "#f25235"
+#     )) +
+#     theme_bw() +
+#     geom_hline(yintercept = seq(0.5, 92.5, 1), color = "gray75", linetype = "longdash") +
+#     geom_hline(yintercept = seq(6.5, 92.5, 6), color = "gray40", linetype = "longdash") +
+#     geom_hline(yintercept = seq(18.5, 92.5, 18), color = "gray10", linetype = "solid") +
+#     geom_vline(xintercept = 0, color = "gray85") +
+#     scale_y_discrete(limits = rev(levels(PropInfe$Scenario))) +
+#     labs(
+#         y = "Programmes",
+#         x = "Proportion of cases averted (%)",
+#         color = "Age group"
+#     ) +
+#     theme(
+#         axis.text = element_text(size = 6, face = "bold"),
+#         axis.title = element_text(size = 7, face = "bold"),
+#         axis.title.y = element_text(margin = margin(r = 10)),
+#         axis.text.x = element_text(margin = margin(b = 5)),
+#         legend.position = "none",
+#         panel.grid.major = element_blank(),
+#         panel.grid.minor = element_blank(),
+#         strip.background = element_rect(fill = "grey95"),
+#         strip.text = element_text(size = 7, face = "bold"),
+#         plot.margin = margin(l = 6, r = 6, b = 6)
+#     )
+# ggsave(PropInfe_Fig, file = paste0(FilePath, "2e2.PropInfe_Appendix.pdf"), width = 6, height = 8)

@@ -836,12 +836,12 @@ MCMC.Proposal <- function(Parm) {
 
   ParmNew_seasonal <- rtruncnorm(1, a = 2, b = 15, mean = Parm[2], sd = 0.09) # 0.2 Parm[2] / 10  0.005 # beta_seasonal
 
-  ParmNew2 <- rtruncnorm(1, a = -45, b = -25, mean = Parm[3], sd = 0) # 0.3) # Parm[3] + runif(1, -1.8, 1.8) # phi
+  ParmNew2 <- rtruncnorm(1, a = -45, b = 20, mean = Parm[3], sd = 0) # 0.3) # Parm[3] + runif(1, -1.8, 1.8) # phi
   # a = -40, b = -10,
   # a = -182, b = 183
   # a = -30, b = 20
 
-  ParmNew3 <- runif(1, 4.077284, 4.669717) * 7 # # Parm[4] # seasonal_wavelength
+  ParmNew3 <- Parm[4] # seasonal_wavelength
   # ParmNew3 <- rtruncnorm(1, a = 28, b = 35, mean = Parm[4], sd = 0.03 * step) # 0.0004 seasonal_wavelength
 
   # ParmNew4 <- rtruncnorm(11, a = 0, b = 0.05, mean = Parm[c(5:15)], sd = Parm[c(5:15)] / 12) # Hosp_rate
@@ -904,8 +904,7 @@ MCMC.MH <- function(
     proposal_log_likelihood <- Model.RunSim.LLH(
       Parm = Parameter.Create(
         beta_base = proposal[1], beta_seasonal = proposal[2], phi = proposal[3],
-        seasonal_wavelength = proposal[4],
-        Hosp_rate = c(proposal[5:15]), Age_Sus = Sus_reduce
+        seasonal_wavelength = proposal[4], Hosp_rate = c(proposal[5:15]), Age_Sus = Sus_reduce
       ), TargetDat = TargetDat, lag = lag, model = model, AgeDistribution, AgeDistributionDat
     )
 
@@ -1701,7 +1700,7 @@ Model.GetI.Immu <- function(dat, Hosp_rate, Effacy_I, Effacy_Hosp,
 
   # Extract the infection cases (No hospitalization)
   Real_Infection <- copy(RealI)[, (ExcludeCol) := lapply(.SD, sum),
-    by = .(week), .SDcols = ExcludeCol
+                                by = .(week), .SDcols = ExcludeCol
   ]
 
   # Calculate cases for each group
@@ -1710,15 +1709,11 @@ Model.GetI.Immu <- function(dat, Hosp_rate, Effacy_I, Effacy_Hosp,
   Effacy_I2H[Effacy_I2H == 0] <- 1
 
   BeforeVac <- RealI[time < as.Date(Vac_start)]
-  BeforeVac[, (2:(ncol(BeforeVac) - 1)) := lapply(
-    2:(ncol(BeforeVac) - 1),
-    function(i) BeforeVac[[i]] * Hosp_rate[i - 1]
-  )]
+  BeforeVac[, (2:(ncol(BeforeVac) - 1)) := lapply(2:(ncol(BeforeVac) - 1), 
+                                                  function(i) BeforeVac[[i]] * Hosp_rate[i - 1])]
   AfterVac <- RealI[time >= as.Date(Vac_start)]
-  AfterVac[, (2:(ncol(AfterVac) - 1)) := lapply(
-    2:(ncol(AfterVac) - 1),
-    function(i) AfterVac[[i]] * Hosp_rate[i - 1] * Effacy_I2H[i - 1]
-  )]
+  AfterVac[, (2:(ncol(AfterVac) - 1)) := lapply(2:(ncol(AfterVac) - 1), 
+                                                function(i) AfterVac[[i]] * Hosp_rate[i - 1] * Effacy_I2H[i - 1])]
   RealI <- rbind(BeforeVac, AfterVac)
   RealI <- RealI[, (ExcludeCol) := lapply(.SD, sum), by = .(week), .SDcols = ExcludeCol]
 
@@ -1782,12 +1777,10 @@ Calu.PropI2H <- function(ModelParm, lag, Age_Sus, Vac_start, Effacy_I = 0, Effac
 #' @return IndirectProtect = 总疫苗间接保护率,
 #' @return TotalProtect = 总疫苗保护率
 Vac.Protection <- function(
-    ModelParm, Prop_I2H = NULL, VacAgeGroup, lag, Age_Sus, Vac_start, Effacy_I, Effacy_Hosp, VacProp,
-    model = "SIRVV", Plot = FALSE, save = FALSE, path, width, height) {
+    ModelParm, VacAgeGroup, lag, Age_Sus, Vac_start, Effacy_I, Effacy_Hosp, VacProp, model = "SIRVV",
+    Plot = FALSE, save = FALSE, path, width, height) {
   ### Calculate the proportion of hospitalization to infection
-  if (is.null(Prop_I2H)) {
-    Prop_I2H <- Calu.PropI2H(ModelParm, lag, Age_Sus, Vac_start, Effacy_I = 0, Effacy_Hosp = 0, VacProp, model)
-  }
+  Prop_I2H <- Calu.PropI2H(ModelParm, lag, Age_Sus, Vac_start, Effacy_I = 0, Effacy_Hosp = 0, VacProp, model)
 
   ### Calculate the incidence rate after vaccination
   InfeCase <- Model.RunSim.Immu(Parm = Parameter.Create(
@@ -1900,19 +1893,15 @@ Vac.Protection <- function(
     )
   }
   RawSimuData <- copy(ImmuSim[[4]])
-  # TotalVacc <- sum(RawSimuData[time == as.Date(Vac_start) + 1, ..FindV])
-  VacNum <- RawSimuData[time == as.Date(Vac_start) + 1, ..FindV]
-  VacNum_SV <- sum(VacNum[, .SD, .SDcols = patterns("^SV")]) / (Effacy_Hosp - Effacy_I)
-  VacNum_V <- sum(VacNum[, .SD, .SDcols = patterns("^V")]) / Effacy_I
-  TotalVacc <- VacNum_V + VacNum_SV
+  TotalVacc <- sum(RawSimuData[time == as.Date(Vac_start) + 1, ..FindV])
 
   # NetProtectHospAll <- copy(ImmuSim[["AvertHospInfe"]])[, (3:13) := lapply(.SD, sum), .SDcols = c(3:13)]
   NetProtectHospAll <- sum(NetProtectHosp_2age$cases) # + sum(NetProtectHospAll[1, 3:13]) # Total averted hospitalization (None vacc + Cases in IV)
-  AvertHospPerVac <- TotalVacc / NetProtectHospAll # Real vaccination number / Total averted hospitalization
+  AvertHospPerVac <- (TotalVacc / VacProp) / NetProtectHospAll # Real vaccination number / Total averted hospitalization
 
   NetProtectInfeAll <- sum(NetProtectInfe_2age$cases)
-  NNV_Infe <- TotalVacc / NetProtectInfeAll
-  VacNumber <- TotalVacc
+  NNV_Infe <- (TotalVacc / VacProp) / NetProtectInfeAll
+  VacNumber <- TotalVacc / VacProp
 
 
   if (Plot == TRUE) {
@@ -2418,7 +2407,7 @@ Vac.Plot.Batch <- function(dat, save = FALSE, path, width, height) {
 
 #' @description A batch version of the vaccination simulation, return all results simultaneously
 #'
-Vac.Batch <- function(MCMC_Result, Prop_I2H = NULL,
+Vac.Batch <- function(MCMC_Result,
                       Age_Sus, VacAgeGroup, Vac_start, Effacy_I, Effacy_Hosp,
                       VacProp, lag, model = "SIRVV",
                       Plot = TRUE, save = FALSE, path = NULL, width, height,
@@ -2426,9 +2415,7 @@ Vac.Batch <- function(MCMC_Result, Prop_I2H = NULL,
   # Extract data from MCMC
   Posteriori_Median <- MCMC_Result$Median
   Posteriori_Sample <- MCMC_Result$SampleChain %>% split(., row(.))
-  if (!is.null(Prop_I2H)) {
-    Prop_I2H <- apply(Prop_I2H, 1, \(x) runif(1, x[1], x[3]))
-  }
+
 
   # Run simulation
   Parallel.Regist(10, seed = seed)
@@ -2446,7 +2433,6 @@ Vac.Batch <- function(MCMC_Result, Prop_I2H = NULL,
 
     SimResult <- Vac.Protection(
       ModelParm = sample,
-      Prop_I2H = Prop_I2H,
       VacAgeGroup = VacAgeGroup,
       lag = lag,
       Age_Sus = Age_Sus,

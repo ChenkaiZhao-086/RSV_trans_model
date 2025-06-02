@@ -12,15 +12,15 @@ Fig3a1_dat <- VacProtectNet_All %>%
         Scenario = factor(Scenario),
         Scenario = substr(Scenario, 4, 7),
         Scenario = case_when(
-            Scenario == "E6C6" ~ "Eff: 60%; Cov: 60%",
-            Scenario == "E6C7" ~ "Eff: 60%; Cov: 70%",
-            Scenario == "E6C8" ~ "Eff: 60%; Cov: 80%",
-            Scenario == "E7C6" ~ "Eff: 70%; Cov: 60%",
-            Scenario == "E7C7" ~ "Eff: 70%; Cov: 70%",
-            Scenario == "E7C8" ~ "Eff: 70%; Cov: 80%",
-            Scenario == "E8C6" ~ "Eff: 80%; Cov: 60%",
-            Scenario == "E8C7" ~ "Eff: 80%; Cov: 70%",
-            Scenario == "E8C8" ~ "Eff: 80%; Cov: 80%"
+            Scenario == "E6C6" ~ "Eff: 60/70%;\nCov: 60%",
+            Scenario == "E6C7" ~ "Eff: 60/70%;\nCov: 70%",
+            Scenario == "E6C8" ~ "Eff: 60/70%;\nCov: 80%",
+            Scenario == "E7C6" ~ "Eff: 70/80%;\nCov: 60%",
+            Scenario == "E7C7" ~ "Eff: 70/80%;\nCov: 70%",
+            Scenario == "E7C8" ~ "Eff: 70/80%;\nCov: 80%",
+            Scenario == "E8C6" ~ "Eff: 80/90%;\nCov: 60%",
+            Scenario == "E8C7" ~ "Eff: 80/90%;\nCov: 70%",
+            Scenario == "E8C8" ~ "Eff: 80/90%;\nCov: 80%"
         )
     )
 
@@ -73,15 +73,15 @@ Fig3a2_dat <- VacProtect_All %>%
         Scenario = factor(Scenario),
         Scenario = substr(Scenario, 4, 7),
         Scenario = case_when(
-            Scenario == "E6C6" ~ "Eff: 60%; Cov: 60%",
-            Scenario == "E6C7" ~ "Eff: 60%; Cov: 70%",
-            Scenario == "E6C8" ~ "Eff: 60%; Cov: 80%",
-            Scenario == "E7C6" ~ "Eff: 70%; Cov: 60%",
-            Scenario == "E7C7" ~ "Eff: 70%; Cov: 70%",
-            Scenario == "E7C8" ~ "Eff: 70%; Cov: 80%",
-            Scenario == "E8C6" ~ "Eff: 80%; Cov: 60%",
-            Scenario == "E8C7" ~ "Eff: 80%; Cov: 70%",
-            Scenario == "E8C8" ~ "Eff: 80%; Cov: 80%"
+            Scenario == "E6C6" ~ "Eff: 60/70%;\nCov: 60%",
+            Scenario == "E6C7" ~ "Eff: 60/70%;\nCov: 70%",
+            Scenario == "E6C8" ~ "Eff: 60/70%;\nCov: 80%",
+            Scenario == "E7C6" ~ "Eff: 70/80%;\nCov: 60%",
+            Scenario == "E7C7" ~ "Eff: 70/80%;\nCov: 70%",
+            Scenario == "E7C8" ~ "Eff: 70/80%;\nCov: 80%",
+            Scenario == "E8C6" ~ "Eff: 80/90%;\nCov: 60%",
+            Scenario == "E8C7" ~ "Eff: 80/90%;\nCov: 70%",
+            Scenario == "E8C8" ~ "Eff: 80/90%;\nCov: 80%"
         )
     )
 
@@ -98,7 +98,7 @@ Fig3a2 <- ggplot(Fig3a2_dat, aes(x = median, y = Scenario, fill = class)) +
     geom_hline(yintercept = seq(2.5, 37.5, 2), color = "gray10", linetype = "longdash") +
     # geom_hline(yintercept = seq(0.5, 37.5, 6), color = "gray10", linetype = "solid") +
     scale_y_discrete(limits = rev(levels(Fig3a2_dat$Scenario))) +
-    scale_x_continuous(limits = function(x) c(min(x), max(x) * 1.05)) +
+    scale_x_continuous(limits = function(x) c(min(x), max(x) * 1.1)) +
     facet_wrap(~type, scales = "free_x") +
     labs(
         y = "Programmes",
@@ -136,15 +136,15 @@ Fig3b_dat <- AvertHospPerVac %>%
         Scenario = factor(Scenario),
         Scenario = substr(Scenario, 4, 7),
         Scenario = case_when(
-            Scenario == "E6C6" ~ "Eff: 60%; Cov: 60%",
-            Scenario == "E6C7" ~ "Eff: 60%; Cov: 70%",
-            Scenario == "E6C8" ~ "Eff: 60%; Cov: 80%",
-            Scenario == "E7C6" ~ "Eff: 70%; Cov: 60%",
-            Scenario == "E7C7" ~ "Eff: 70%; Cov: 70%",
-            Scenario == "E7C8" ~ "Eff: 70%; Cov: 80%",
-            Scenario == "E8C6" ~ "Eff: 80%; Cov: 60%",
-            Scenario == "E8C7" ~ "Eff: 80%; Cov: 70%",
-            Scenario == "E8C8" ~ "Eff: 80%; Cov: 80%"
+            Scenario == "E6C6" ~ "Eff: 60/70%;\nCov: 60%",
+            Scenario == "E6C7" ~ "Eff: 60/70%;\nCov: 70%",
+            Scenario == "E6C8" ~ "Eff: 60/70%;\nCov: 80%",
+            Scenario == "E7C6" ~ "Eff: 70/80%;\nCov: 60%",
+            Scenario == "E7C7" ~ "Eff: 70/80%;\nCov: 70%",
+            Scenario == "E7C8" ~ "Eff: 70/80%;\nCov: 80%",
+            Scenario == "E8C6" ~ "Eff: 80/90%;\nCov: 60%",
+            Scenario == "E8C7" ~ "Eff: 80/90%;\nCov: 70%",
+            Scenario == "E8C8" ~ "Eff: 80/90%;\nCov: 80%"
         )
     )
 
@@ -197,15 +197,15 @@ Fig3c1_dat <- NetProtectHosp %>%
         Scenario = factor(Scenario),
         Scenario = substr(Scenario, 4, 7),
         Scenario = case_when(
-            Scenario == "E6C6" ~ "Eff: 60%; Cov: 60%",
-            Scenario == "E6C7" ~ "Eff: 60%; Cov: 70%",
-            Scenario == "E6C8" ~ "Eff: 60%; Cov: 80%",
-            Scenario == "E7C6" ~ "Eff: 70%; Cov: 60%",
-            Scenario == "E7C7" ~ "Eff: 70%; Cov: 70%",
-            Scenario == "E7C8" ~ "Eff: 70%; Cov: 80%",
-            Scenario == "E8C6" ~ "Eff: 80%; Cov: 60%",
-            Scenario == "E8C7" ~ "Eff: 80%; Cov: 70%",
-            Scenario == "E8C8" ~ "Eff: 80%; Cov: 80%"
+            Scenario == "E6C6" ~ "Eff: 60/70%;\nCov: 60%",
+            Scenario == "E6C7" ~ "Eff: 60/70%;\nCov: 70%",
+            Scenario == "E6C8" ~ "Eff: 60/70%;\nCov: 80%",
+            Scenario == "E7C6" ~ "Eff: 70/80%;\nCov: 60%",
+            Scenario == "E7C7" ~ "Eff: 70/80%;\nCov: 70%",
+            Scenario == "E7C8" ~ "Eff: 70/80%;\nCov: 80%",
+            Scenario == "E8C6" ~ "Eff: 80/90%;\nCov: 60%",
+            Scenario == "E8C7" ~ "Eff: 80/90%;\nCov: 70%",
+            Scenario == "E8C8" ~ "Eff: 80/90%;\nCov: 80%"
         )
     )
 
@@ -228,7 +228,7 @@ Fig3c1 <- ggplot(Fig3c1_dat, aes(x = median, y = Scenario, fill = class)) +
         x = "Number of cases averted",
         color = "Age group"
     ) +
-    facet_wrap(~age_group, scales = "free_x") +
+    facet_wrap(~type, scales = "free_x") +
     theme(
         axis.text = element_text(size = 14, face = "bold"),
         axis.text.y = element_text(margin = margin(r = 10)),
@@ -259,15 +259,15 @@ Fig3c2_dat <- PropHosp %>%
         Scenario = factor(Scenario),
         Scenario = substr(Scenario, 4, 7),
         Scenario = case_when(
-            Scenario == "E6C6" ~ "Eff: 60%; Cov: 60%",
-            Scenario == "E6C7" ~ "Eff: 60%; Cov: 70%",
-            Scenario == "E6C8" ~ "Eff: 60%; Cov: 80%",
-            Scenario == "E7C6" ~ "Eff: 70%; Cov: 60%",
-            Scenario == "E7C7" ~ "Eff: 70%; Cov: 70%",
-            Scenario == "E7C8" ~ "Eff: 70%; Cov: 80%",
-            Scenario == "E8C6" ~ "Eff: 80%; Cov: 60%",
-            Scenario == "E8C7" ~ "Eff: 80%; Cov: 70%",
-            Scenario == "E8C8" ~ "Eff: 80%; Cov: 80%"
+            Scenario == "E6C6" ~ "Eff: 60/70%;\nCov: 60%",
+            Scenario == "E6C7" ~ "Eff: 60/70%;\nCov: 70%",
+            Scenario == "E6C8" ~ "Eff: 60/70%;\nCov: 80%",
+            Scenario == "E7C6" ~ "Eff: 70/80%;\nCov: 60%",
+            Scenario == "E7C7" ~ "Eff: 70/80%;\nCov: 70%",
+            Scenario == "E7C8" ~ "Eff: 70/80%;\nCov: 80%",
+            Scenario == "E8C6" ~ "Eff: 80/90%;\nCov: 60%",
+            Scenario == "E8C7" ~ "Eff: 80/90%;\nCov: 70%",
+            Scenario == "E8C8" ~ "Eff: 80/90%;\nCov: 80%"
         )
     )
 

@@ -15,16 +15,15 @@ library(truncnorm)
 library(extraDistr)
 library(coda)
 library(scales)
-
-# save.image(file = paste0(FilePath, "20241206.Rdata"))
-load("Output/V1/20241206.Rdata")
+library(ggh4x)
 
 ### All resuls
-# save.image(file = paste0(FilePath, "20241210.Rdata"))
-load("Output/V1/20241210.Rdata")
+# save.image(file = paste0(FilePath, "20250602.Rdata"))
+load("Output/V1/20250602.Rdata")
 
 source("Code/func.R")
 source("Code/RefDat.R")
+source("Code/Plot_func.r")
 # source("Code/RefDat_MA.R")
 
 sourceCpp("Code/model_cppV4.cpp")
@@ -84,3 +83,5 @@ source("Code/9.AgeDis.r")
 
 ### Peak reduction for appendix
 source("Code/10.PeakReduction.r")
+
+source("Code/Cal_Rt.R")

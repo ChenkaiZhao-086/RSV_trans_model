@@ -130,10 +130,10 @@ IR_ratio_Appendix <- ggplot(IR_ratio_All, aes(x = age_group, y = median, group =
     )) +
     facet_wrap(~Scenario, nrow = 4) +
     theme(
-        axis.text = element_text(size = 10, face = "bold"),
+        axis.text = element_text(size = 14, face = "bold"),
         axis.title.y = element_text(margin = margin(r = 10)),
-        axis.text.x = element_text(margin = margin(b = 5)),
-        axis.title = element_text(size = 18, face = "bold"),
+        axis.text.x = element_text(, angle = 45, hjust = 1, margin = margin(b = 5)),
+        axis.title = element_text(size = 16, face = "bold"),
         strip.text = element_text(size = 14, face = "bold"),
         strip.background = element_rect(fill = "grey95"),
         strip.placement = "outside",
