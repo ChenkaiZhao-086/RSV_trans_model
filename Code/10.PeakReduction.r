@@ -64,7 +64,7 @@ PeakReductionDat$Class1 <- str_replace_all(
 PeakReduction_Fig <- ggplot(PeakReductionDat, aes(y = Class1, x = Class2)) +
     geom_tile(aes(fill = median), color = "white") +
     geom_text(aes(label = sprintf("%.1f", median)), color = "white", size = 4, fontface = "bold") +
-    scale_fill_gradient2(low = "#ce1c4e", mid = "#f69c73", high = "#f9d7c0", midpoint = 35, na.value = "grey90") +
+    scale_fill_gradient2(low = "#f9d7c0", mid = "#f69c73", high = "#ce1c4e", midpoint = 20, na.value = "grey90") +
     scale_y_discrete(limits = rev(levels(PeakReductionDat$Class1))) +
     theme_minimal() +
     labs(
@@ -93,7 +93,7 @@ PeakReductionDat_Main_Fig <- ggplot(PeakReductionDat_Main, aes(y = Class1, x = C
     geom_tile(aes(fill = median), color = "white") +
     geom_text(aes(label = sprintf("%.1f", median)), color = "white", size = 8, fontface = "bold") +
     scale_y_discrete(limits = rev(levels(PeakReductionDat_Main$Class1))) +
-    scale_fill_gradient2(low = "#ce1c4e", mid = "#f69c73", high = "#f9d7c0", midpoint = 35, na.value = "grey90") +
+    scale_fill_gradient2(low = "#f9d7c0", mid = "#f69c73", high = "#ce1c4e", midpoint = 20, na.value = "grey90") +
     theme_minimal() +
     labs(
         x = "Immunisation efficacy and coverage",

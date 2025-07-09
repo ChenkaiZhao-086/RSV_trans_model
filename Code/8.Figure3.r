@@ -118,7 +118,7 @@ Fig3a2 <- ggplot(Fig3a2_dat, aes(x = median, y = Scenario, fill = class)) +
         axis.ticks.y = element_blank(),
         axis.line.y = element_blank()
     ) +
-    geom_text(aes(x = uci, label = round(median, 1)),
+    geom_text(aes(x = uci, label = format(round(median, 1), nsmall = 1)),
         position = position_dodge(width = 0.7),
         hjust = -0.3,
         size = 3.5,
@@ -165,7 +165,7 @@ Fig3b <- ggplot(Fig3b_dat, aes(x = median, y = Scenario, fill = class)) +
     # scale_x_continuous(limits = c(5, 15)) +
     labs(
         y = "Programmes",
-        x = "Number of people needed to vaccinate"
+        x = "Number needed to immunise to prevent one RSV-RTI hospitalisation"
     ) +
     theme(
         axis.text = element_text(size = 14, face = "bold"),
@@ -179,7 +179,7 @@ Fig3b <- ggplot(Fig3b_dat, aes(x = median, y = Scenario, fill = class)) +
         plot.margin = margin(r = 20),
         panel.spacing = unit(1.5, "lines")
     ) +
-    geom_text(aes(x = uci, label = round(median, 1)),
+    geom_text(aes(x = uci, label = format(round(median, 1), nsmall = 1)),
         position = position_dodge(width = 0.7),
         hjust = -0.2,
         size = 3.5,
@@ -305,7 +305,7 @@ Fig3c2 <- ggplot(Fig3c2_dat, aes(x = median, y = Scenario, fill = class)) +
         axis.ticks.y = element_blank(),
         axis.line.y = element_blank()
     ) +
-    geom_text(aes(x = uci, label = round(median, 1)),
+    geom_text(aes(x = uci, label = format(round(median, 1), nsmall = 1)),
         position = position_dodge(width = 0.7),
         hjust = -0.2,
         size = 3.5,

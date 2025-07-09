@@ -150,6 +150,7 @@ RealDat_plot <- copy(RefDat)
 
 
 library(EpiEstim)
+set.seed(380)
 # 计算Rt
 BeforePandemic <- estimate_R(
     incid = MergeDat$summ,

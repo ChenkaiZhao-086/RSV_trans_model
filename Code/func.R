@@ -332,7 +332,7 @@ Parameter.Create <- function(
     year_end = "2020-06-27",
     # Model parameters
     LiveBirth = 55101 / 365, # weekly live birth ## 55101 per year, average from 1999 to 2019
-    Deaths = 55101 / 365,
+    Deaths = 55101 / 365 - 100,
     StartDyingOff = 8, # the 8th age group (> 60 years old)
     age_rates = c(
       1 / (30 * 3), # 0-2 months
@@ -345,7 +345,7 @@ Parameter.Create <- function(
       1 / (365 * 5), # 60-64 years
       1 / (365 * 5), # 65-69 years
       1 / (365 * 5), # 70-74 years
-      0 # 75+ years
+      1 / (365 * 5) # 75+ years
     ),
     omega_m = 28, # Duration of immunity from maternal
     beta_base = 1,
@@ -554,15 +554,15 @@ Plot.Model <- function(dat, RealDat = RealDat_plot) {
   Fig1 <- SimResult %>%
     as.data.frame() %>%
     ggplot() +
-    geom_line(aes(x = time, y = S0_G2), colour = "red") +
-    geom_line(aes(x = time, y = I0_G2), colour = "blue") +
-    geom_line(aes(x = time, y = R0_G2), colour = "#034337") +
-    geom_line(aes(x = time, y = S1_G2), colour = "red", linetype = 2) +
-    geom_line(aes(x = time, y = I1_G2), colour = "blue", linetype = 2) +
-    geom_line(aes(x = time, y = R1_G2), colour = "#034337", linetype = 2) +
-    geom_line(aes(x = time, y = S2_G2), colour = "red", linetype = 3, linewidth = 1.2) +
-    geom_line(aes(x = time, y = I2_G2), colour = "blue", linetype = 3, linewidth = 1.2) +
-    geom_line(aes(x = time, y = R2_G2), colour = "#034337", linetype = 3, linewidth = 1.2) +
+    geom_line(aes(x = time, y = S0_G1), colour = "red") +
+    geom_line(aes(x = time, y = I0_G1), colour = "blue") +
+    geom_line(aes(x = time, y = R0_G1), colour = "#034337") +
+    geom_line(aes(x = time, y = S1_G1), colour = "red", linetype = 2) +
+    geom_line(aes(x = time, y = I1_G1), colour = "blue", linetype = 2) +
+    geom_line(aes(x = time, y = R1_G1), colour = "#034337", linetype = 2) +
+    geom_line(aes(x = time, y = S2_G1), colour = "red", linetype = 3, linewidth = 1.2) +
+    geom_line(aes(x = time, y = I2_G1), colour = "blue", linetype = 3, linewidth = 1.2) +
+    geom_line(aes(x = time, y = R2_G1), colour = "#034337", linetype = 3, linewidth = 1.2) +
     theme_minimal()
 
 
@@ -854,11 +854,11 @@ MCMC.Proposal <- function(Parm) {
   ParmNew4.5 <- rtruncnorm(1, a = 0.0001, b = 0.01, mean = Parm[c(10)], sd = 0.00002) # Parm[c(6:10)] / 20 Hosp_rate 0.0005
 
   ParmNew4.6 <- rtruncnorm(1, a = 0.0001, b = 0.001, mean = Parm[c(11)], sd = 0.00002) # Parm[c(11)] / 12  0.00004# Hosp_rate
-  ParmNew4.7 <- rtruncnorm(1, a = 0.0001, b = 0.01, mean = Parm[c(12)], sd = 0.0002) # Parm[c(12)] / 12 0.00004# Hosp_rate
+  ParmNew4.7 <- rtruncnorm(1, a = 0.00001, b = 0.01, mean = Parm[c(12)], sd = 0.0002) # Parm[c(12)] / 12 0.00004# Hosp_rate
   # a = 0.001
-  ParmNew4.8 <- rtruncnorm(1, a = 0.0001, b = 0.03, mean = Parm[c(13)], sd = 0.0002) # 0.001 # Parm[c(13)] / 12 0.00004# Hosp_rate
-  ParmNew4.9 <- rtruncnorm(1, a = 0.0001, b = 0.03, mean = Parm[c(14)], sd = 0.0002) # 0.001 # Parm[c(14)] / 12 0.00004# Hosp_rate
-  ParmNew4.10 <- rtruncnorm(1, a = 0.001, b = 0.01, mean = Parm[c(15)], sd = 0.0002) # 0.001 # Parm[c(15)] / 12 0.00004# Hosp_rate
+  ParmNew4.8 <- rtruncnorm(1, a = 0.00001, b = 0.03, mean = Parm[c(13)], sd = 0.0002) # 0.001 # Parm[c(13)] / 12 0.00004# Hosp_rate
+  ParmNew4.9 <- rtruncnorm(1, a = 0.00001, b = 0.03, mean = Parm[c(14)], sd = 0.0002) # 0.001 # Parm[c(14)] / 12 0.00004# Hosp_rate
+  ParmNew4.10 <- rtruncnorm(1, a = 0.0001, b = 0.02, mean = Parm[c(15)], sd = 0.0002) # 0.001 # Parm[c(15)] / 12 0.00004# Hosp_rate
 
   ParmNew4 <- c(
     ParmNew4.0,
@@ -882,8 +882,8 @@ MCMC.Proposal <- function(Parm) {
 #' @title Run MCMC model
 #' @param Prior: prior parameters
 MCMC.MH <- function(
-    Prior, n_iterations, TargetDat = RefDat, lag = FALSE, Sus_reduce, model = "SIR",
-    AgeDistribution = FALSE, AgeDistributionDat = RealDatDistribution) {
+    Prior, n_iterations, TargetDat = RefDat, lag = FALSE, Sus_reduce, ReducedSus_1 = 1, ReducedSus_2 = 1,
+    model = "SIR", AgeDistribution = FALSE, AgeDistributionDat = RealDatDistribution) {
   chain <- matrix(NA, nrow = n_iterations, ncol = 15 + 1)
   chain[1, -16] <- Prior
   # accepted <- 0
@@ -892,7 +892,9 @@ MCMC.MH <- function(
     Parm = Parameter.Create(
       beta_base = chain[1, 1], beta_seasonal = chain[1, 2], phi = chain[1, 3],
       seasonal_wavelength = chain[1, 4],
-      Hosp_rate = c(chain[1, 5:15]), Age_Sus = Sus_reduce
+      Hosp_rate = c(chain[1, 5:15]), Age_Sus = Sus_reduce,
+      ReducedSus_1 = ReducedSus_1,
+      ReducedSus_2 = ReducedSus_2
     ), TargetDat = TargetDat, lag = lag, model = model, AgeDistribution, AgeDistributionDat
   )
   chain[1, 16] <- current_log_likelihood
@@ -905,7 +907,9 @@ MCMC.MH <- function(
       Parm = Parameter.Create(
         beta_base = proposal[1], beta_seasonal = proposal[2], phi = proposal[3],
         seasonal_wavelength = proposal[4],
-        Hosp_rate = c(proposal[5:15]), Age_Sus = Sus_reduce
+        Hosp_rate = c(proposal[5:15]), Age_Sus = Sus_reduce,
+        ReducedSus_1 = ReducedSus_1,
+        ReducedSus_2 = ReducedSus_2
       ), TargetDat = TargetDat, lag = lag, model = model, AgeDistribution, AgeDistributionDat
     )
 
@@ -1042,11 +1046,11 @@ MCMC.PostProcess <- function(dat, burn_in = 5000, thin = 10, n_sample = 500) {
 
   Chain <- mcmc.list(Chain)
 
-  # par(mfrow = c(4, 4))
-  # Traceplot <- traceplot(Chain)
+  par(mfrow = c(4, 4))
+  Traceplot <- traceplot(Chain)
 
-  # par(mfrow = c(4, 4))
-  # Densplot <- densplot(Chain)
+  par(mfrow = c(4, 4))
+  Densplot <- densplot(Chain)
 
   # Geltest <- try(gelman.diag(Chain))
   Heitest <- heidel.diag(Chain)
@@ -1072,8 +1076,8 @@ MCMC.PostProcess <- function(dat, burn_in = 5000, thin = 10, n_sample = 500) {
   )
 
   return(list(
-    # Traceplot = Traceplot,
-    # Densplot = Densplot,
+    Traceplot = Traceplot,
+    Densplot = Densplot,
     # Geltest = Geltest,
     Heitest = Heitest,
     SampleChain = SampleChain,
@@ -1783,7 +1787,8 @@ Calu.PropI2H <- function(ModelParm, lag, Age_Sus, Vac_start, Effacy_I = 0, Effac
 #' @return TotalProtect = 总疫苗保护率
 Vac.Protection <- function(
     ModelParm, Prop_I2H = NULL, VacAgeGroup, lag, Age_Sus, Vac_start, Effacy_I, Effacy_Hosp, VacProp,
-    model = "SIRVV", Plot = FALSE, save = FALSE, path, width, height) {
+    ReducedSus_1, ReducedSus_2, model = "SIRVV",
+    Plot = FALSE, save = FALSE, path, width, height) {
   ### Calculate the proportion of hospitalization to infection
   if (is.null(Prop_I2H)) {
     Prop_I2H <- Calu.PropI2H(ModelParm, lag, Age_Sus, Vac_start, Effacy_I = 0, Effacy_Hosp = 0, VacProp, model)
@@ -1800,7 +1805,9 @@ Vac.Protection <- function(
     Vac_start = Vac_start,
     Effacy_I = Effacy_I,
     Effacy_Hosp = Effacy_Hosp,
-    VacProp = VacProp
+    VacProp = VacProp,
+    ReducedSus_1 = ReducedSus_1,
+    ReducedSus_2 = ReducedSus_2
   ), lag = lag, model = model)
 
   I_case <- copy(InfeCase[["Real_Infection"]])
@@ -1820,7 +1827,8 @@ Vac.Protection <- function(
   ### Calculate the vaccination protection
   ImmuSim <- Vac.Protection.Simulation(
     ModelParm = ModelParm, VacAgeGroup = VacAgeGroup, Prop_I2H = Prop_I2H, Effacy_I = Effacy_I, Effacy_Hosp = Effacy_Hosp,
-    lag = lag, Age_Sus = Age_Sus, Vac_start = Vac_start, VacProp = VacProp, model = model
+    ReducedSus_1 = ReducedSus_1, ReducedSus_2 = ReducedSus_2, lag = lag, Age_Sus = Age_Sus,
+    Vac_start = Vac_start, VacProp = VacProp, model = model
   )
 
   ImmuHosp_summ <- ImmuSim[["HospResult"]]
@@ -1830,7 +1838,8 @@ Vac.Protection <- function(
 
   BaseSim <- Vac.Protection.Simulation(
     ModelParm = ModelParm, VacAgeGroup = VacAgeGroup, Prop_I2H = Prop_I2H, Effacy_I = 0, Effacy_Hosp = 0,
-    lag = lag, Age_Sus = Age_Sus, Vac_start = Vac_start, VacProp = VacProp, model = model
+    ReducedSus_1 = ReducedSus_1, ReducedSus_2 = ReducedSus_2, lag = lag, Age_Sus = Age_Sus,
+    Vac_start = Vac_start, VacProp = VacProp, model = model
   )
 
   BaseHosp_summ <- BaseSim[["HospResult"]]
@@ -1976,7 +1985,8 @@ Vac.Protection <- function(
 #' @return SummCase_2age: calculate the summary of new confirmed cases for 2 age groups by week between 1-10 and 40-53
 #' @return SimResult[[2]]: the raw simulation result for the plot
 Vac.Protection.Simulation <- function(ModelParm, Prop_I2H, VacAgeGroup, lag, Age_Sus,
-                                      Vac_start, Effacy_I, Effacy_Hosp, VacProp, model = "SIRVV") {
+                                      Vac_start, Effacy_I, Effacy_Hosp, VacProp,
+                                      ReducedSus_1, ReducedSus_2, model = "SIRVV") {
   SimResult <- Model.RunSim.Immu(Parm = Parameter.Create(
     beta_base = ModelParm[1],
     beta_seasonal = ModelParm[2],
@@ -1988,6 +1998,8 @@ Vac.Protection.Simulation <- function(ModelParm, Prop_I2H, VacAgeGroup, lag, Age
     Effacy_I = Effacy_I,
     Effacy_Hosp = Effacy_Hosp,
     VacProp = VacProp,
+    ReducedSus_1 = ReducedSus_1,
+    ReducedSus_2 = ReducedSus_2,
     VacAgeGroup = VacAgeGroup
   ), lag = lag, model = model)
 
@@ -2420,7 +2432,7 @@ Vac.Plot.Batch <- function(dat, save = FALSE, path, width, height) {
 #'
 Vac.Batch <- function(MCMC_Result, Prop_I2H = NULL,
                       Age_Sus, VacAgeGroup, Vac_start, Effacy_I, Effacy_Hosp,
-                      VacProp, lag, model = "SIRVV",
+                      VacProp, lag, model = "SIRVV", ReducedSus_1 = 1, ReducedSus_2 = 1,
                       Plot = TRUE, save = FALSE, path = NULL, width, height,
                       seed = 380) {
   # Extract data from MCMC
@@ -2454,6 +2466,8 @@ Vac.Batch <- function(MCMC_Result, Prop_I2H = NULL,
       Effacy_I = Effacy_I,
       Effacy_Hosp = Effacy_Hosp,
       VacProp = VacProp,
+      ReducedSus_1 = ReducedSus_1,
+      ReducedSus_2 = ReducedSus_2,
       model = model,
       Plot = FALSE
     )
@@ -2568,4 +2582,33 @@ Plot.AgeDistribution <- function(dat) {
   #     y = "Number of cases averted"
   #   )
   return(BindDat)
+}
+
+
+#' @title Calculate the infection-hospitalisation ratio with combined age groups
+#' @description This function calculates the infection-hospitalisation ratio for children under 2 years old
+Calu.I2H.Combine <- function(
+    ModelParm, lag, Age_Sus, Vac_start,
+    Effacy_I = 0, Effacy_Hosp = 0, VacProp, model = "SIRVV") {
+  Prop_I2H <- Calu.PropI2H(ModelParm,
+    lag,
+    Age_Sus,
+    Vac_start,
+    Effacy_I = 0,
+    Effacy_Hosp = 0,
+    VacProp,
+    model
+  )
+
+  Hosp_Patient <- Vac.Protection.Simulation(
+    ModelParm = ModelParm, Prop_I2H = Prop_I2H,
+    Effacy_I = 0, Effacy_Hosp = 0,
+    lag = lag, Age_Sus = Age_Sus, VacAgeGroup = "S1", Vac_start = "2019-08-30",
+    VacProp = VacProp, model = model
+  )
+
+  Infe_less2 <- sum(Hosp_Patient[["InfectionResult"]][1:4, 2])
+  Hosp_less2 <- sum(Hosp_Patient[["HospResult"]][1:4, 2])
+
+  return(as.numeric(Hosp_less2 / Infe_less2))
 }

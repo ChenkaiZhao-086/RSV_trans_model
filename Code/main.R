@@ -18,8 +18,8 @@ library(scales)
 library(ggh4x)
 
 ### All resuls
-# save.image(file = paste0(FilePath, "20250602.Rdata"))
-load("Output/V1/20250602.Rdata")
+# save.image(file = paste0(FilePath, "20250614.Rdata"))
+load("Output/V1/20250614.Rdata")
 
 source("Code/func.R")
 source("Code/RefDat.R")
@@ -85,3 +85,15 @@ source("Code/9.AgeDis.r")
 source("Code/10.PeakReduction.r")
 
 source("Code/Cal_Rt.R")
+
+
+#### I2H for children <2 years old
+Calu.I2H.Combine(Posteriori_Median_S44,
+  lag = FALSE,
+  Age_Sus = c(.4, .4),
+  Vac_start = "2019-08-30",
+  Effacy_I = 0,
+  Effacy_Hosp = 0,
+  VacProp = .8,
+  model = "SIRVV"
+)

@@ -347,7 +347,7 @@ VacProtectProp_Fig <- ggplot(VacProtectProp_All, aes(x = median, y = Scenario, f
         axis.ticks.y = element_blank(),
         axis.line.y = element_blank()
     ) +
-    geom_text(aes(x = uci, label = round(median, 1)),
+    geom_text(aes(x = uci, label = format(round(median, 1), nsmall = 1)),
         position = position_dodge(width = 0.6),
         hjust = -0.3,
         size = 3.5,

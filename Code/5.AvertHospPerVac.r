@@ -73,7 +73,7 @@ NNV_Main_Fig <- ggplot(NNV_Main, aes(x = median, y = Scenario, fill = class)) +
     )) +
     labs(
         y = "Programmes",
-        x = "Number of people needed to vaccinate"
+        x = "Number needed to immunise to prevent one RSV-RTI hospitalisation"
     ) +
     theme(
         axis.text = element_text(size = 14, face = "bold"),
@@ -83,15 +83,15 @@ NNV_Main_Fig <- ggplot(NNV_Main, aes(x = median, y = Scenario, fill = class)) +
         legend.position = "none",
         strip.background = element_blank(),
         strip.text = element_text(size = 14, face = "bold"),
-        plot.margin = margin(r = 10)
+        plot.margin = margin(r = 15)
     ) +
-    geom_text(aes(x = uci, label = round(median, 1)),
+    geom_text(aes(x = uci, label = format(round(median, 1), nsmall = 1)),
         position = position_dodge(width = 0.6),
         hjust = -0.2,
         size = 3.5,
         fontface = "bold"
     )
-ggsave(NNV_Main_Fig, file = paste0(FilePath, "2c.NNV.pdf"), width = 8, height = 3)
+ggsave(NNV_Main_Fig, file = paste0(FilePath, "2c.NNV.pdf"), width = 8.5, height = 3)
 
 
 ### For appendix: all scenarios
@@ -141,10 +141,10 @@ NNV_S1 <- AvertHospPerVac %>%
     geom_hline(yintercept = seq(3.5, 92.5, 3), color = "gray40", linetype = "longdash") +
     geom_hline(yintercept = seq(6.5, 92.5, 6), color = "gray10", linetype = "solid") +
     scale_y_discrete(limits = rev(levels(AvertHospPerVac$Scenario2))) +
-    scale_x_continuous(limits = c(0, 95)) +
+    scale_x_continuous(limits = c(0, 170)) +
     labs(
         y = "Programmes",
-        x = "Number of people needed to vaccinate"
+        x = "Number needed to immunise to prevent one RSV-RTI hospitalisation"
     ) +
     theme(
         axis.text = element_text(size = 6, face = "bold"),
@@ -170,10 +170,10 @@ NNV_S2 <- AvertHospPerVac %>%
     geom_hline(yintercept = seq(3.5, 92.5, 3), color = "gray40", linetype = "longdash") +
     geom_hline(yintercept = seq(6.5, 92.5, 6), color = "gray10", linetype = "solid") +
     scale_y_discrete(limits = rev(levels(AvertHospPerVac$Scenario2))) +
-    scale_x_continuous(limits = c(0, 95)) +
+    scale_x_continuous(limits = c(0, 170)) +
     labs(
         y = "Programmes",
-        x = "Number of people needed to vaccinate"
+        x = "Number needed to immunise to prevent one RSV-RTI hospitalisation"
     ) +
     theme(
         axis.text = element_text(size = 6, face = "bold"),
@@ -199,10 +199,10 @@ NNV_S3 <- AvertHospPerVac %>%
     geom_hline(yintercept = seq(3.5, 92.5, 3), color = "gray40", linetype = "longdash") +
     geom_hline(yintercept = seq(6.5, 92.5, 6), color = "gray10", linetype = "solid") +
     scale_y_discrete(limits = rev(levels(AvertHospPerVac$Scenario2))) +
-    scale_x_continuous(limits = c(0, 95)) +
+    scale_x_continuous(limits = c(0, 170)) +
     labs(
         y = "Programmes",
-        x = "Number of people needed to vaccinate"
+        x = "Number needed to immunise to prevent one RSV-RTI hospitalisation"
     ) +
     theme(
         axis.text = element_text(size = 6, face = "bold"),
@@ -228,10 +228,10 @@ NNV_S4 <- AvertHospPerVac %>%
     geom_hline(yintercept = seq(3.5, 92.5, 3), color = "gray40", linetype = "longdash") +
     geom_hline(yintercept = seq(6.5, 92.5, 6), color = "gray10", linetype = "solid") +
     scale_y_discrete(limits = rev(levels(AvertHospPerVac$Scenario2))) +
-    scale_x_continuous(limits = c(0, 95)) +
+    scale_x_continuous(limits = c(0, 170)) +
     labs(
         y = "Programmes",
-        x = "Number of people needed to vaccinate"
+        x = "Number needed to immunise to prevent one RSV-RTI hospitalisation"
     ) +
     theme(
         axis.text = element_text(size = 6, face = "bold"),
@@ -257,10 +257,10 @@ NNV_S5 <- AvertHospPerVac %>%
     geom_hline(yintercept = seq(3.5, 92.5, 3), color = "gray40", linetype = "longdash") +
     geom_hline(yintercept = seq(6.5, 92.5, 6), color = "gray10", linetype = "solid") +
     scale_y_discrete(limits = rev(levels(AvertHospPerVac$Scenario2))) +
-    scale_x_continuous(limits = c(0, 95)) +
+    scale_x_continuous(limits = c(0, 170)) +
     labs(
         y = "Programmes",
-        x = "Number of people needed to vaccinate"
+        x = "Number needed to immunise to prevent one RSV-RTI hospitalisation"
     ) +
     theme(
         axis.text = element_text(size = 6, face = "bold"),

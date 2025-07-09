@@ -1,5 +1,6 @@
 I2H.Batch <- function(
     MCMC_Result, Age_Sus, VacAgeGroup, Vac_start,
+    ReducedSus_1 = 1, ReducedSus_2 = 1,
     VacProp, lag, model = "SIRVV", seed = 380) {
     # Extract data from MCMC
     Posteriori_Median <- MCMC_Result$Median
@@ -18,6 +19,7 @@ I2H.Batch <- function(
 
         Prop_I2H <- Calu.PropI2H(
             ModelParm = sample, lag, Age_Sus, Vac_start,
+            ReducedSus_1 = ReducedSus_1, ReducedSus_2 = ReducedSus_2,
             Effacy_I = 0, Effacy_Hosp = 0, VacProp, model = "SIRVV"
         )
 
